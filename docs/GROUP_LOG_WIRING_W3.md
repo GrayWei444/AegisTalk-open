@@ -88,7 +88,7 @@ Background: [W1](GROUP_LOG_WIRING_W1.md#background-the-group-log-model) (the gro
 - Leftover broker subscriptions are cleaned only for topics this client remembered (localStorage); a session from a W2-era
   client may keep gid subscriptions until it expires (nobody publishes there any more).
 - The broker still sees who subscribes to which tid and when the tids change (membership size, rekey timing); the tids of
-  one group are linkable through the same clientId (README, "What the server still sees").
+  one group are linkable through the same clientId (README.en.md, "What the server still sees").
 - "No gid on the broker" protects against a broker-only observer (a broker compromise or log leak) and against removed
   members subscribing by gid. Neither the envelope nor the offer proof carries a kid any more (M3), so the broker's data
   holds no identifier the log API also sees. An operator that runs both can still correlate by **timing** (a rekey append to

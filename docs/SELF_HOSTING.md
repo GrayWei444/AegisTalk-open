@@ -27,8 +27,8 @@ Contents: [what a server consists of](#what-a-server-consists-of) · [accounts](
 | TLS reverse proxy (Caddy) | HTTPS for the API, `wss://` for the broker, optional static web app | No |
 | Static web host (optional) | serves the PWA (`packages/pwa/dist`) | No |
 
-What the operator can still see or do (by design; the full list is in the README, "What the server still sees" and
-"What the operator can do"): who connects when and from which IP,
+What the operator can still see or do (by design; the full list is in the README, ["What the server still sees"](../README.en.md#what-the-server-still-sees) and
+["What the operator can do"](../README.en.md#what-the-operator-can-do)): who connects when and from which IP,
 which topics a token covers (that reveals who subscribes to whose presence topic, i.e. the friend graph), the
 size and timing of every envelope, which account appends to which group log, and the plaintext public parts of a
 short friend code (public key, display name). The operator can drop or delay anything. It cannot read messages,
@@ -375,7 +375,7 @@ cd android && ./gradlew assembleChatRelease        # app/build/outputs/apk/chat/
 ## Known limits
 
 - The operator sees metadata (who connects when, from which IP, which topics a token covers — that includes the
-  friend graph — sizes and timing) and can drop or delay anything; see the README.
+  friend graph — sizes and timing) and can drop or delay anything; see the [README](../README.en.md#what-the-server-still-sees).
 - Device-transfer tokens (the new phone receiving its data from the old one) need no account: 20 per IP per hour,
   receive-only, 5 minutes.
 - Someone with an account can fill another user's offline queue (1000 messages per session, then the oldest are

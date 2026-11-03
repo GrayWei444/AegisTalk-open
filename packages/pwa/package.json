@@ -1,6 +1,6 @@
 {
   "name": "aegistalk-chat-pwa",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "AegisTalk Chat (community edition) - end-to-end encrypted chat, groups and calls",
   "private": true,
   "type": "module",

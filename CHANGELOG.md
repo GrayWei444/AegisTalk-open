@@ -1,8 +1,6 @@
 # Changelog
 
-## Unreleased — first public release (version TBD)
-
-<!-- OWNER: set the version number and date when the release is cut (step 9/10). -->
+## 1.0.0 — 2026-11-03
 
 First public source release of AegisTalk Chat, the self-hostable chat edition of AegisTalk, under the MIT license.
 

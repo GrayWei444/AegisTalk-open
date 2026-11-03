@@ -59,8 +59,9 @@ What the design protects against that operator:
   `packages/crypto-core/REPRODUCIBLE*.sha256` ([crypto-core README](packages/crypto-core/README.md)).
 
 What it does **not** protect against — metadata visible to the server, availability, and the known gaps — is listed
-in the README: [What the server still sees](README.md#what-the-server-still-sees),
-[What the operator can do](README.md#what-the-operator-can-do) and [Known limits](README.md#known-limits).
+in the English README: [What the server still sees](README.en.md#what-the-server-still-sees),
+[What the operator can do](README.en.md#what-the-operator-can-do) and [Known limits](README.en.md#known-limits)
+(in Traditional Chinese: [README.md](README.md#伺服器還看得到什麼)).
 
 ## For reviewers
 
