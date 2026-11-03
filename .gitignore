@@ -1,0 +1,96 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+target/
+*.tsbuildinfo
+
+# WASM - keep pre-built artifacts in packages/pwa/src/wasm/
+*.wasm
+!packages/pwa/src/wasm/
+# Sherpa-ONNX files are too large for GitHub (>100MB), download separately
+packages/pwa/public/sherpa-onnx/*.wasm
+packages/pwa/public/sherpa-onnx/*.data
+# AuraFace ArcFace model (130MB FP16) — 預裝/部署而非 git，比照 sherpa-onnx
+packages/pwa/public/models/*.onnx
+# onnxruntime-web WASM runtime — build 前由 scripts/copy-ort-wasm.mjs 從 node_modules 複製
+packages/pwa/public/wasm/
+# sql.js wasm for the web SQLite (packages/pwa/scripts/copy-sqlite-wasm.mjs; a build product)
+packages/pwa/public/sql-wasm.wasm
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Test
+coverage/
+test-results/
+packages/pwa/e2e/reports/*.json
+packages/pwa/e2e/reports/*.md
+packages/pwa/e2e/reports/screenshots/
+packages/pwa/e2e/reports/videos/
+.playwright-artifacts*/
+
+# Rust
+*.rs.bk
+Cargo.lock
+# crypto-core 的 lockfile 要進版控：可重現建置靠它釘住依賴（build.sh --locked）
+!packages/crypto-core/Cargo.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
+credentials.json
+*.pem
+*.key
+*.keystore
+*.jks
+key.properties
+
+# Large WASM files are tracked with Git LFS (see .gitattributes)
+google-services.json
+
+# Firebase Service Account (server-side)
+*firebase*adminsdk*.json
+firebase-service-account.json
+packages/pwa/e2e/assets/face-test.y4m
+packages/pwa/e2e-report/
+Screen_Recording_*.mp4
+# 測試錄影 / 臉部辨識影片 — 不進 repo
+*.mp4
+packages/pwa/public/models/
+packages/pwa/tsconfig.tsbuildinfo
+packages/pwa/ios/App/CLAUDE.md
+packages/pwa/ios/App/App/CLAUDE.md

@@ -1,0 +1,7 @@
+# Accepted SHA-256 values of safetalk_core_bg.wasm built by build.sh from this source.
+# wasm-bindgen 0.2.106 emits two imports (__wbindgen_cast_*) in a nondeterministic order,
+# so a build produces one of these two byte-for-byte variants (same size, same code).
+# Measured on Linux x86_64 (rustc 1.90.0, wasm-pack 0.13.1). A macOS arm64 build differs already in rustc's
+# output and is not listed (README.md, "Reproducibility").
+28a9f0e0cec621a55fad6bbdb855ce6efdc8e404855bef1bba0bb791c3523b1a
+467927521fcead42114a1c899d6fed31cfc1121e7cd830988cbf1535f39a921e

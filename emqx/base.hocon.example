@@ -1,0 +1,112 @@
+## EMQX 5.8.x settings for an AegisTalk chat server (see docs/SELF_HOSTING.md and docs/MQTT_BROKER.md).
+##
+## Copy to etc/base.hocon (docker: mount it at /opt/emqx/etc/base.hocon). Tested with EMQX 5.8.9
+## (Apache-2.0; EMQX 5.9 and later are under the Business Source License).
+##
+## Precedence in EMQX: base.hocon < cluster.hocon (dashboard changes) < emqx.conf < EMQX_* environment variables.
+## Do not change authentication or authorization in the dashboard: a change there is stored in cluster.hocon
+## and silently overrides this file.
+##
+## The JWT secret is NOT in this file. Pass the same value the API uses (AEGIS_MQTT_JWT_SECRET) as
+##   EMQX_AUTHENTICATION__1__SECRET=<secret>
+## (docker-compose.example.yml does this). Without it EMQX keeps the placeholder below and every token fails.
+
+## ── Authentication: exactly one authenticator, JWT from the MQTT password ────────────────────────────
+## The API signs every token (HS256). The token carries its own ACL (claim "acl") and is bound to the
+## CONNECT username and client id. No other authenticator (built-in database, HTTP, …), so there is no
+## user/password and no superuser anywhere; the API never puts is_superuser in a token.
+authentication = [
+  {
+    mechanism = jwt
+    from = password
+    use_jwks = false
+    algorithm = "hmac-based"
+    secret = "set-EMQX_AUTHENTICATION__1__SECRET-to-AEGIS_MQTT_JWT_SECRET"
+    secret_base64_encoded = false
+    acl_claim_name = "acl"
+    ## ${username} / ${clientid} are EMQX placeholders (quoted, so HOCON does not substitute them).
+    ## In a docker-compose environment variable they would have to be written $${username}.
+    verify_claims {
+      username = "${username}"
+      clientid = "${clientid}"
+    }
+    ## A token expires after 1 hour (5 minutes for a device-transfer token): the connection is closed then.
+    disconnect_after_expire = true
+  }
+]
+
+## ── Authorization: only what the token's acl claim allows ────────────────────────────────────────────
+## No sources at all (the default file source ends with {allow, all}). A token's rules end with a deny-all
+## rule; anything else falls to no_match = deny. deny_action = ignore: a refused publish gets PUBACK 0x87,
+## a refused subscription SUBACK 0x87, and the connection stays up.
+authorization {
+  no_match = deny
+  deny_action = ignore
+  cache {
+    enable = true
+    max_size = 32
+    ttl = 1m
+  }
+  sources = []
+}
+
+## ── Listeners ─────────────────────────────────────────────────────────────────────────────────────────
+## Bare metal: everything on 127.0.0.1; the TLS reverse proxy forwards wss://<mqtt host>/mqtt to the ws
+## listener. Docker: the compose file rebinds both to 0.0.0.0 inside the container and publishes only the
+## ws port, on 127.0.0.1. The tcp listener is used by the API for its own "device replaced" notices.
+listeners.tcp.default {
+  bind = "127.0.0.1:1883"
+  enable_authn = true
+  max_connections = 100000
+}
+listeners.ws.default {
+  bind = "127.0.0.1:8083"
+  enable_authn = true
+  max_connections = 100000
+  websocket.mqtt_path = "/mqtt"
+  ## Per client: an app sends a few messages per second at most (a reconnect flushes up to 200 queued ones).
+  ## Over the rate EMQX stops reading from that client for a while (backpressure), it does not disconnect.
+  ## Bounds how fast one account can fill someone's offline queue (1000 messages, see mqtt below).
+  messages_rate = "50/s"
+  bytes_rate = "1MB/s"
+}
+listeners.ssl.default {
+  enable = false
+}
+listeners.wss.default {
+  enable = false
+}
+
+## ── Session and queue limits ──────────────────────────────────────────────────────────────────────────
+## One inbox topic per sender, persistent sessions (24 h). A token holds at most
+## 1 inbox + 50 group topics + 150 friend presence topics + 1 kick topic = 202 subscriptions.
+## max_packet_size: identity-sealed invites/state can be ~700 KB on the wire. The API caps client ids (= persistent
+## sessions) at 10 and own presence tags (= retained topics) at 20 per account per day.
+mqtt {
+  max_packet_size = 1MB
+  max_clientid_len = 64
+  max_topic_levels = 8
+  max_qos_allowed = 1
+  max_subscriptions = 256
+  max_inflight = 32
+  max_awaiting_rel = 100
+  max_mqueue_len = 1000
+  mqueue_store_qos0 = false
+  session_expiry_interval = 24h
+  retain_available = true
+}
+
+## ── Retained messages ─────────────────────────────────────────────────────────────────────────────────
+## Tokens allow retain only on the owner's own secret presence topic (one small {n, c} state per user).
+## 7 days: the app re-publishes its state every 4 minutes while connected; with open registration
+## (500 accounts/day x 20 tags/day each) 7 days stays under the 200 000 cap, 30 days would not.
+retainer {
+  enable = true
+  max_payload_size = 2KB
+  msg_expiry_interval = 7d
+  backend {
+    type = built_in_database
+    storage_type = disc
+    max_retained_messages = 200000
+  }
+}

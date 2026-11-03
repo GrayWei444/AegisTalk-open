@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1b2a" />
+    <meta name="description" content="AegisTalk Chat (community): end-to-end encrypted chat on your own server" />
+
+    <!-- CSP (community policy; the official build appends its own hosts at build time, see vite.config.ts).
+         connect-src allows any https:/wss: origin because the chat server is chosen at runtime (open-source step 5c); at boot
+         services/connectPolicy.ts adds a second policy that narrows connect-src to the chosen server's API and broker
+         (a meta CSP can only be tightened, never relaxed). localhost: development and the self-host smoke test. -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: blob:;
+      connect-src 'self' https: wss: blob: http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*;
+      media-src 'self' blob:;
+      worker-src 'self' blob:;
+      frame-src 'none';
+      font-src 'self';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    " />
+
+    <!-- PWA -->
+    <link rel="apple-touch-icon" href="/logo-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <title>AegisTalk</title>
+
+    <!-- Inline theme script: prevents flash of wrong theme before React loads -->
+    <script>
+      (function() {
+        var STORAGE_KEY = 'aegistalk_theme';
+        var mode = 'system';
+        try { mode = localStorage.getItem(STORAGE_KEY) || 'system'; } catch(e) {}
+        var isDark = mode === 'dark' ||
+          (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.add(isDark ? 'dark' : 'light');
+      })();
+    </script>
+
+  </head>
+  <body>
+    <jeep-sqlite wasmpath=""></jeep-sqlite>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

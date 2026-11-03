@@ -1,0 +1,14 @@
+# Standalone chat server (api/chat_app.py: api/chat/*, api/group_log_routes.py). The official full API uses requirements.txt.
+# Optional extras: requirements-webpush.txt (Web Push / VAPID), requirements-fcm.txt (Firebase Cloud Messaging).
+# Tested together (2026-10-26, Python 3.12): fastapi 0.115.0, pydantic 2.9.0, uvicorn 0.31.0, PyJWT 2.15.1,
+#   cryptography 50.0.2, paho-mqtt 2.1.0 (+ pywebpush 2.5.0, firebase-admin 7.7.0)
+fastapi==0.115.0
+uvicorn[standard]==0.31.0
+pydantic==2.9.0
+# MQTT tokens (chat/mqtt_auth.py)
+PyJWT>=2.4,<3
+# Ed25519 account signatures, VAPID key checks (chat/signing.py, chat/config.py)
+cryptography>=41,<51
+# the server's own "device replaced" notices to the broker (chat/mqtt_auth.py publish_mqtt_kick)
+paho-mqtt>=1.6,<3
+# The Python tests in scripts/review (FastAPI TestClient) also need httpx.

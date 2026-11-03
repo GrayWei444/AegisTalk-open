@@ -1,0 +1,26 @@
+{
+  // 社群版（AEGIS_EDITION=chat）的型別檢查：@ext 指向 src/ext/chat，不含 src/ext-official。
+  // 在沒有私有套件（../../../AegisAI、AegisID、AegisGuard、AegisPay）的資料夾裡也要 0 錯誤 ——
+  // 公開的檔案若還 import 到 ext-official 或 @aegisrd/*，這裡就會失敗。
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@ext": ["src/ext/chat/index.tsx"],
+      "@ext/backup": ["src/ext/chat/backup.ts"],
+      "@ext/callAnalysis": ["src/ext/chat/callAnalysis.ts"],
+      "@ext/server": ["src/ext/chat/server.ts"],
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@config/*": ["src/config/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@services/*": ["src/services/*"],
+      "@stores/*": ["src/stores/*"],
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@wasm/*": ["src/wasm/*"],
+      "@plugins/*": ["src/plugins/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/ext-official"]
+}

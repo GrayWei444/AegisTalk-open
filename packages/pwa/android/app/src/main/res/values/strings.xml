@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- app_name／title_activity_main（啟動器上的名字）由 app/build.gradle 依版本產生（resValue；開源第 5d 步）：
+         官方版 AegisTalk，社群版 AegisTalk Chat (community)／AegisTalk Chat -->
+    <string name="package_name">com.aegisrd.talk</string>
+    <string name="custom_url_scheme">aegistalk</string>
+
+    <!-- 權限說明 (Android 13+) -->
+    <string name="permission_rationale_camera">AegisTalk 需要相機權限來拍攝照片和進行視訊通話</string>
+    <string name="permission_rationale_microphone">AegisTalk 需要麥克風權限來進行語音和視訊通話</string>
+    <string name="permission_rationale_storage">AegisTalk 需要儲存空間權限來儲存和傳送檔案</string>
+    <string name="permission_rationale_notifications">AegisTalk 需要通知權限來接收訊息提醒</string>
+</resources>

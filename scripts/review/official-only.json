@@ -1,0 +1,75 @@
+{
+  "about": [
+    "Review tests that need the official edition. scripts/review/run-all.mjs reads this file: a listed test runs only when",
+    "every entry in its 'needs' exists, otherwise it is reported as SKIP with the missing entry. The public repository does",
+    "not ship these test files; run-all.mjs reports them as 'not in this checkout'. Tests that are shared but have an",
+    "official-only part are NOT listed here: they print a line starting with 'SKIP' for that part (run-all.mjs lists those",
+    "lines in its summary). Mutation runners take their official mutants from scripts/review/mutants_official.py",
+    "(mutant_kit.py skips them when that file or the code they change is absent).",
+    "A need is a path relative to the repository root, '~/...' for the home folder, or '$VAR' for the path in that",
+    "environment variable; 'a | b' means any one of them."
+  ],
+  "tests": {
+    "ext_official_antifraud_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "scan points of the official anti-fraud extension"
+    },
+    "risk_score_signing_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "signed risk-score requests of the official anti-fraud extension"
+    },
+    "sealed_blob_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "AegisID sealed cloud backup (official identity)"
+    },
+    "sealed_blob_unlock_self_test.py": {
+      "needs": ["api/main.py", "$AEGISID_ROUTES | ../AegisID/api/aegisid_routes.py | ~/projects/AegisID/api/aegisid_routes.py"],
+      "why": "AegisID unlock against the real AegisID routes (an AegisID checkout >= a3d85ed; with an older one the test passes part 1 and prints SKIP for part 2)"
+    },
+    "recovery_signature_timestamp_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "AegisID social recovery signatures"
+    },
+    "guardian_sender_roles_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official", "packages/pwa/android/app/src/official"],
+      "why": "family guardian (official edition only)"
+    },
+    "edition_schema_official_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "the official tables in the shared DB (the shared registry is edition_schema_self_test.mjs)"
+    },
+    "guardian_logout_official_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official", "packages/pwa/android/app/src/official"],
+      "why": "the official native guardian-data cleanup on logout (the shared part is guardian_logout_self_test.mjs)"
+    },
+    "key_quarantine_official_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "the official AuthScreen's handling of quarantined keys (the shared part is key_quarantine_self_test.mjs)"
+    },
+    "shared_safety_official_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official"],
+      "why": "official PIN change and cloud backup flush (the shared part is shared_safety_self_test.mjs)"
+    },
+    "w5_review_fixes_official_self_test.mjs": {
+      "needs": ["packages/pwa/src/ext-official", "packages/pwa/android/app/src/official"],
+      "why": "guardian check-in config (the shared part is w5_review_fixes_self_test.mjs)"
+    },
+    "guardian_credentials_self_test.py": {
+      "needs": ["api/main.py"],
+      "why": "the official server dropped the guardian credentials"
+    },
+    "main_wiring_self_test.py": {
+      "needs": ["api/main.py"],
+      "why": "how the official server (api/main.py) mounts the chat routers"
+    },
+    "server_admin_endpoints_self_test.py": {
+      "needs": ["api/main.py", "api/antifraud_routes.py", "api/ops_routes.py"],
+      "why": "official server operations and anti-fraud endpoints"
+    },
+    "trust_update_auth_self_test.py": {
+      "needs": ["api/main.py", "api/antifraud_trust.py"],
+      "why": "official trust-score API"
+    }
+  },
+  "mutants": {}
+}

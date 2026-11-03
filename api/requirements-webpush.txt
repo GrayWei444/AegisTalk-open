@@ -1,0 +1,4 @@
+# Optional: Web Push (VAPID) for the chat server — needed when CHAT_VAPID_PUBLIC_KEY / CHAT_VAPID_PRIVATE_KEY are set.
+#   pip install -r requirements-chat.txt -r requirements-webpush.txt
+# pywebpush (MPL-2.0) pulls in py-vapid (MPL-2.0), http-ece (MIT), requests, aiohttp. Needs Python >= 3.10.
+pywebpush>=2.5,<3

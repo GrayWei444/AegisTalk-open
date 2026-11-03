@@ -1,0 +1,8 @@
+# Public source files reachable from the chat edition entry that may still name the official service's hosts.
+# Read by scripts/review/chat_edition_boundary_self_test.mjs: an official host in any other reachable file fails,
+# and so does an entry here that no longer needs to be listed (the list only shrinks).
+#
+# EMPTY since the server switch (open-source step 5c): the community edition has no default server (it asks on first run,
+# services/serverChoice.ts), every API / broker URL comes from services/apiBase.ts, index.html carries the community CSP
+# (no official host, no MoonPay) and the official values live in src/ext-official (official-server.json, csp.json),
+# which the chat entry never reaches. The boundary test now fails on any entry here.

@@ -1,0 +1,15 @@
+# Python packages for the review suite (scripts/review/run-all.mjs, the *_self_test.py tests, the .mjs tests that drive
+# the Python routers, the mutation runners) and the self-host smoke test (scripts/selfhost/selfhost_smoke.py).
+# Python 3.10 to 3.13 (the pinned pydantic 2.9.0 does not build on 3.14):
+#   python3 -m venv .venv && .venv/bin/pip install -r scripts/review/requirements-test.txt
+#   npm test -- --python .venv/bin/python        (or AEGISTALK_PYTHON=.venv/bin/python)
+# The 4-phone simulator (scripts/sim) needs only the Python standard library.
+
+# the chat server itself (fastapi, pydantic, uvicorn, PyJWT, cryptography, paho-mqtt)
+-r ../../api/requirements-chat.txt
+# Web Push (webpush_self_test, the Web Push parts of chat_app_self_test and chat_config_self_test; they skip without it)
+-r ../../api/requirements-webpush.txt
+# FastAPI's TestClient
+httpx>=0.27,<1
+# optional: independent Argon2id cross-check in pin_auth_self_test (skipped without it)
+argon2-cffi>=23.1,<26

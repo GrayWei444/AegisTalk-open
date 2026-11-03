@@ -1,0 +1,4 @@
+# Optional: Firebase Cloud Messaging for the chat server — needed when CHAT_FCM_CREDENTIALS is set
+# (your own Firebase project and your own app build; see docs/SELF_HOSTING.md).
+#   pip install -r requirements-chat.txt -r requirements-fcm.txt
+firebase-admin>=6,<8

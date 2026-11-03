@@ -1,0 +1,234 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+// 讀取 key.properties（與 aegis-ai 相同模式）
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 兩個版本（開源第 5d 步，docs/EDITIONS.md §2）：
+//   official  com.aegisrd.talk，名稱 AegisTalk —— 跟以前一樣（私有外掛 @aegisrd/guard、ONNX、守護、Google Drive、MoonPay）
+//   chat      社群版 "AegisTalk Chat (community)"，com.aegisrd.talk.community：沒有官方版才有的原生外掛、模型與私有程式碼。
+//             自架的人可以換掉（Gradle 屬性優先，其次環境變數）：
+//               -PaegisChatAppId=…          AEGIS_CHAT_APP_ID          application id（不能是官方版的 com.aegisrd.talk）
+//               -PaegisChatAppName=…        AEGIS_CHAT_APP_NAME        App 名稱
+//               -PaegisChatLauncherLabel=…  AEGIS_CHAT_LAUNCHER_LABEL  啟動器上的名字
+// 網頁資產（cap sync 放在 src/main/assets）要是那個版本建的：checkChatWebAssets／checkOfficialWebAssets（見檔尾）。
+// ────────────────────────────────────────────────────────────────────────────
+def chatSetting = { String prop, String env, String fallback ->
+    def v = project.findProperty(prop) ?: System.getenv(env)
+    return (v == null || v.toString().trim().isEmpty()) ? fallback : v.toString().trim()
+}
+def chatAppId = chatSetting('aegisChatAppId', 'AEGIS_CHAT_APP_ID', 'com.aegisrd.talk.community')
+def chatAppName = chatSetting('aegisChatAppName', 'AEGIS_CHAT_APP_NAME', 'AegisTalk Chat (community)')
+def chatLauncherLabel = chatSetting('aegisChatLauncherLabel', 'AEGIS_CHAT_LAUNCHER_LABEL', 'AegisTalk Chat')
+if (!(chatAppId ==~ /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/) || chatAppId == 'com.aegisrd.talk') {
+    throw new GradleException("aegisChatAppId / AEGIS_CHAT_APP_ID must be a Java package name other than the official app's com.aegisrd.talk (got '${chatAppId}')")
+}
+[chatAppName, chatLauncherLabel].each { label ->
+    // resValue 的字串：不能是資源參照（@ ?開頭），不能有要跳脫的字元
+    if (!(label ==~ /^[^@?\s"'<>&\\][^"'<>&\\]{0,49}$/)) {
+        throw new GradleException("aegisChatAppName / aegisChatLauncherLabel: 1–50 characters, no quotes, <, >, & or backslash, not starting with @ or ? (got '${label}')")
+    }
+}
+
+android {
+    namespace "com.aegisrd.talk"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.aegisrd.talk"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+             // !CLAUDE.md: notes kept next to the sources (src/main/assets/CLAUDE.md) stay out of both APKs (open-source step 6)
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:!CLAUDE.md'
+        }
+    }
+
+    flavorDimensions 'edition'
+    productFlavors {
+        official {
+            dimension 'edition'
+            // application id 跟 defaultConfig 一樣（com.aegisrd.talk），名稱照舊
+            resValue 'string', 'app_name', 'AegisTalk'
+            resValue 'string', 'title_activity_main', 'AegisTalk'
+            proguardFile 'proguard-official.pro'
+        }
+        chat {
+            dimension 'edition'
+            applicationId chatAppId
+            resValue 'string', 'app_name', chatAppName
+            resValue 'string', 'title_activity_main', chatLauncherLabel
+        }
+    }
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystorePropertiesFile.exists() ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            debuggable true
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // 簽章金鑰在 repo 外（key.properties）；沒有 → 產出未簽章的 release APK（自架的人用自己的金鑰簽）
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+
+    // 支援 WebView 偵錯 (開發環境)
+    buildFeatures {
+        buildConfig true
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/INDEX.LIST', 'META-INF/DEPENDENCIES']
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+
+    // 生物辨識 (Passkey 支援)
+    implementation "androidx.biometric:biometric:1.1.0"
+
+    // Kotlin (AegisFCMService / IncomingCallActivity / NotificationStrings / RingToken)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.1.0"
+    // Coroutines (Network Shield VPN) — 官方版
+    officialImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0"
+    officialImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+
+    // （Paho MQTT 拿掉了：原生守護背景服務 GuardianMqttService 已移除，W5）
+
+    // Firebase Cloud Messaging (offline push notifications)。兩個版本都有這個函式庫（@capacitor/push-notifications 本來就帶），
+    // 但只有放了 google-services.json 的版本會初始化 Firebase（見檔尾）；社群版預設沒有 → 不連 FCM，只有 Web Push／App 內通知
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+
+    // Ed25519 驗章（來電推播的響鈴 token，RingToken.kt；開源第 5d 步）。Tink 是純 Java，minSdk 24 也能用；
+    // @capacitor-community/sqlite 經 androidx.security 本來就帶了它，這裡明寫出來
+    implementation "com.google.crypto.tink:tink-android:$tinkVersion"
+
+    // ONNX Runtime（原生臉部模型推論的外掛，HANDOFF §0.17 point 4）— 官方版
+    // 把 66MB 模型 + 推論移出 WebView；模型 opset 標準，任何 ≥1.8 皆可（與 onnxruntime-web 1.24.x 對齊）
+    // 1.28.0：1.20.0 的 libonnxruntime4j_jni.so LOAD align 只有 4KB → Android 15 跳「未對齊 16 KB」相容性警告
+    officialImplementation 'com.microsoft.onnxruntime:onnxruntime-android:1.28.0'
+
+    // Google Sign-In + Drive API (Phase 28 Cloud Backup) — 官方版
+    officialImplementation 'com.google.android.gms:play-services-auth:21.2.0'
+    officialImplementation 'com.google.api-client:google-api-client-android:1.35.2'
+    officialImplementation 'com.google.apis:google-api-services-drive:v3-rev20241206-2.0.0'
+    officialImplementation 'com.google.http-client:google-http-client-gson:1.43.3'
+
+    testImplementation "junit:junit:$junitVersion"
+    // JVM 單元測試讀測試向量（RingTokenTest）：android.jar 的 org.json 是空殼
+    testImplementation 'org.json:json:20240303'
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+// cap sync 把每個裝了的 Capacitor 外掛都放進 implementation（兩個版本都會編進去）。私有外掛（node_modules/@aegisrd/*，
+//   例如 @aegisrd/guard：NetworkShield、規則引擎）只屬於官方版 → 移到 officialImplementation（開源第 5d 步）。
+//   社群版的樹（沒有私有套件）cap sync 本來就不會產生它們。
+def privatePluginModules = configurations.implementation.dependencies.findAll { dep ->
+    if (!(dep instanceof ProjectDependency)) return false
+    def module = rootProject.findProject(':' + dep.name)
+    return module != null && module.projectDir.absolutePath.replace('\\', '/').contains('/node_modules/@aegisrd/')
+}
+privatePluginModules.each { dep ->
+    configurations.implementation.dependencies.remove(dep)
+    dependencies.add('officialImplementation', dep)
+}
+
+// FCM（google-services.json，每個版本各自的；開源第 5d 步）：
+//   official  app/google-services.json（跟以前一樣）或 app/src/official/google-services.json
+//   chat      只有 app/src/chat/google-services.json（自架的人自己的 Firebase 專案、自己的 application id）——
+//             沒有就沒有 FCM（Web Push／App 內通知），絕不拿官方版的那一份
+def officialServices = [file('google-services.json'), file('src/official/google-services.json')].find { it.exists() && it.text.trim() }
+def chatServices = file('src/chat/google-services.json')
+def chatFcm = chatServices.exists() && chatServices.text.trim()
+if (officialServices || chatFcm) {
+    apply plugin: 'com.google.gms.google-services'
+    tasks.configureEach { t ->
+        // 任何 build type（\w*：以後多一個 staging 也一樣），社群版絕不退回 app/google-services.json（第 5d 步審查 L4）
+        if (!chatFcm && t.name ==~ /processChat\w*GoogleServices/) t.enabled = false
+        if (!officialServices && t.name ==~ /processOfficial\w*GoogleServices/) t.enabled = false
+    }
+} else {
+    logger.info("no google-services.json: google-services plugin not applied (no FCM; Web Push / in-app notifications only)")
+}
+
+// 網頁資產（cap sync 放在 src/main/assets）要是這個版本建的（開源第 5d 步）：vite 在 dist 放 aegis-edition.json。
+//   社群版另外不能有官方版才有的檔（臉部／語音模型、ONNX runtime、MediaPipe、防詐測試頁…，同 vite.config.ts 的 OFFICIAL_ONLY_PUBLIC）
+//   與私有外掛的註冊（capacitor.plugins.json 裡的 @aegisrd/*）—— 在官方版的樹裡建社群版、忘了重建網頁，這裡會擋下來。
+def officialOnlyPublic = ~/^(sherpa-onnx|sherpa-onnx-old-streaming|test-audio|models|mediapipe)\/.*|^wasm\/ort-.*|^(voice-test\.html|worklets\/ring-buffer-processor\.js)$|.*\.(onnx|ort|tflite|task)$/
+def checkWebAssets = { String edition ->
+    def assets = file('src/main/assets')
+    def marker = new File(assets, 'public/aegis-edition.json')
+    if (!marker.exists()) {
+        throw new GradleException("src/main/assets/public/aegis-edition.json is missing: build the web app with AEGIS_EDITION=${edition} and run `npx cap sync android` first")
+    }
+    def got = new groovy.json.JsonSlurper().parse(marker)?.edition
+    if (got != edition) {
+        throw new GradleException("the web assets in src/main/assets were built for the '${got}' edition, not '${edition}': rebuild with AEGIS_EDITION=${edition} and run `npx cap sync android`")
+    }
+    if (edition == 'chat') {
+        def bad = []
+        fileTree(new File(assets, 'public')).visit { d ->
+            if (!d.directory && d.relativePath.pathString ==~ officialOnlyPublic) bad << d.relativePath.pathString
+        }
+        def plugins = new File(assets, 'capacitor.plugins.json')
+        if (plugins.exists() && plugins.text.contains('@aegisrd/')) bad << 'capacitor.plugins.json registers @aegisrd/* plugins'
+        if (bad) throw new GradleException("the chat edition's web assets contain official-only files: ${bad.take(10)}")
+    }
+}
+tasks.register('checkChatWebAssets') { doLast { checkWebAssets('chat') } }
+tasks.register('checkOfficialWebAssets') { doLast { checkWebAssets('official') } }
+tasks.configureEach { t ->
+    if (t.name ==~ /mergeChat\w*Assets/) t.dependsOn('checkChatWebAssets')
+    if (t.name ==~ /mergeOfficial\w*Assets/) t.dependsOn('checkOfficialWebAssets')
+}

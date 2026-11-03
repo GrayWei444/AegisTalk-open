@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisTalk Evidence Verifier</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .container { max-width: 640px; width: 100%; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff; }
+    .subtitle { color: #888; font-size: 0.875rem; margin-bottom: 2rem; }
+    .drop-zone { border: 2px dashed #333; border-radius: 12px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #4f8ff7; background: rgba(79,143,247,0.05); }
+    .drop-zone p { color: #888; font-size: 0.875rem; }
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    input[type="file"] { display: none; }
+    .result { border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+    .result.valid { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); }
+    .result.invalid { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+    .result h2 { font-size: 1.125rem; margin-bottom: 0.75rem; }
+    .result.valid h2 { color: #22c55e; }
+    .result.invalid h2 { color: #ef4444; }
+    .check-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0; font-size: 0.875rem; }
+    .check-item .icon { font-size: 1rem; }
+    .meta { background: #1a1d27; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+    .meta h3 { font-size: 0.875rem; color: #888; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .meta-row { display: flex; justify-content: space-between; padding: 0.375rem 0; font-size: 0.875rem; border-bottom: 1px solid #222; }
+    .meta-row:last-child { border-bottom: none; }
+    .meta-row .label { color: #888; }
+    .meta-row .value { color: #e0e0e0; text-align: right; max-width: 60%; word-break: break-all; }
+    .messages { background: #1a1d27; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+    .messages h3 { font-size: 0.875rem; color: #888; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .msg { padding: 0.5rem 0; border-bottom: 1px solid #222; font-size: 0.8125rem; }
+    .msg:last-child { border-bottom: none; }
+    .msg .sender { color: #4f8ff7; font-weight: 500; }
+    .msg .time { color: #666; font-size: 0.75rem; margin-left: 0.5rem; }
+    .msg .content { margin-top: 0.25rem; color: #ccc; }
+    .msg .risk { margin-top: 0.25rem; padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem; display: inline-block; }
+    .msg .risk.high, .msg .risk.critical { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .msg .risk.medium { background: rgba(234,179,8,0.2); color: #eab308; }
+    .msg-count { color: #888; font-size: 0.75rem; margin-top: 0.5rem; }
+    .footer { margin-top: 2rem; text-align: center; color: #444; font-size: 0.75rem; }
+    #loading { display: none; text-align: center; padding: 2rem; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AegisTalk Evidence Verifier</h1>
+    <p class="subtitle">驗證 .aegis-evidence 聊天記錄證據包的完整性與簽章</p>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">📄</div>
+      <p>拖放 .aegis-evidence 檔案到此處</p>
+      <p style="margin-top:0.5rem; color:#555">或點擊選擇檔案</p>
+      <input type="file" id="fileInput" accept=".aegis-evidence,.json">
+    </div>
+
+    <div id="loading">驗證中...</div>
+    <div id="results"></div>
+
+    <div class="footer">
+      <p>AegisTalk — AI 防詐通訊平台</p>
+      <p style="margin-top:0.25rem">此頁面完全在瀏覽器端執行，不上傳任何資料</p>
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+    async function sha256Hex(data) {
+      const encoder = new TextEncoder();
+      const buffer = await crypto.subtle.digest('SHA-256', encoder.encode(data));
+      return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function handleFile(file) {
+      loading.style.display = 'block';
+      results.innerHTML = '';
+      try {
+        const text = await file.text();
+        const pkg = JSON.parse(text);
+        if (pkg.format !== 'aegis-evidence' || !pkg.integrity || !pkg.messages) {
+          throw new Error('Invalid file format');
+        }
+        await verify(pkg);
+      } catch (err) {
+        results.innerHTML = `<div class="result invalid"><h2>❌ 驗證失敗</h2><p>${err.message}</p></div>`;
+      }
+      loading.style.display = 'none';
+    }
+
+    async function verify(pkg) {
+      // 1. Verify each message hash
+      const badHashes = [];
+      for (const msg of pkg.messages) {
+        const canonical = `${msg.id}|${msg.senderPubkey}|${msg.content}|${msg.timestamp}`;
+        const expected = await sha256Hex(canonical);
+        if (expected !== msg.hash) badHashes.push(msg.id);
+      }
+
+      // 2. Verify merkle hash
+      const allHashes = pkg.messages.map(m => m.hash).join('');
+      const computedHash = await sha256Hex(allHashes);
+      const hashMatch = computedHash === pkg.integrity.messagesHash;
+
+      // 3. Verify Ed25519 signature (Web Crypto doesn't support Ed25519 natively in all browsers)
+      let sigValid = null; // null = unable to verify
+      let sigNote = 'Ed25519 驗證需要 AegisTalk WASM 核心（此頁面僅驗證 SHA-256 hash）';
+      try {
+        // Try importing Ed25519 via Web Crypto (Chrome 113+, Edge 113+)
+        const pubKeyBytes = Uint8Array.from(atob(pkg.integrity.publicKey), c => c.charCodeAt(0));
+        const sigBytes = Uint8Array.from(atob(pkg.integrity.signature), c => c.charCodeAt(0));
+        const msgBytes = new TextEncoder().encode(pkg.integrity.messagesHash);
+        const key = await crypto.subtle.importKey('raw', pubKeyBytes, { name: 'Ed25519' }, false, ['verify']);
+        sigValid = await crypto.subtle.verify('Ed25519', key, sigBytes, msgBytes);
+        sigNote = sigValid ? '簽章驗證通過' : '簽章驗證失敗 — 資料可能已被竄改';
+      } catch {
+        // Ed25519 not available in this browser
+      }
+
+      const allValid = hashMatch && badHashes.length === 0 && sigValid !== false;
+
+      // Render results
+      let html = `<div class="result ${allValid ? 'valid' : 'invalid'}">`;
+      html += `<h2>${allValid ? '✅ 驗證通過 — 資料完整' : '⚠️ 驗證異常'}</h2>`;
+      html += `<div class="check-item"><span class="icon">${hashMatch ? '✅' : '❌'}</span> Merkle Hash ${hashMatch ? '一致' : '不一致 — 訊息可能被竄改'}</div>`;
+      html += `<div class="check-item"><span class="icon">${badHashes.length === 0 ? '✅' : '❌'}</span> 訊息 Hash ${badHashes.length === 0 ? '全部通過' : `${badHashes.length} 條不一致`}</div>`;
+      html += `<div class="check-item"><span class="icon">${sigValid === true ? '✅' : sigValid === false ? '❌' : 'ℹ️'}</span> ${sigNote}</div>`;
+      html += `</div>`;
+
+      // Metadata
+      const exportDate = new Date(pkg.exportedAt).toLocaleString();
+      const from = new Date(pkg.dateRange.from).toLocaleDateString();
+      const to = new Date(pkg.dateRange.to).toLocaleDateString();
+      html += `<div class="meta"><h3>檔案資訊</h3>`;
+      html += `<div class="meta-row"><span class="label">對話</span><span class="value">${esc(pkg.conversation.displayName)} (${pkg.conversation.type})</span></div>`;
+      html += `<div class="meta-row"><span class="label">匯出時間</span><span class="value">${exportDate}</span></div>`;
+      html += `<div class="meta-row"><span class="label">日期範圍</span><span class="value">${from} ~ ${to}</span></div>`;
+      html += `<div class="meta-row"><span class="label">訊息數</span><span class="value">${pkg.messageCount}</span></div>`;
+      html += `<div class="meta-row"><span class="label">匯出者公鑰</span><span class="value" style="font-size:0.7rem">${esc(pkg.integrity.publicKey)}</span></div>`;
+      html += `</div>`;
+
+      // Messages preview (first 50)
+      const preview = pkg.messages.slice(0, 50);
+      html += `<div class="messages"><h3>訊息預覽</h3>`;
+      for (const msg of preview) {
+        const time = new Date(msg.timestamp).toLocaleString();
+        html += `<div class="msg">`;
+        html += `<span class="sender">${esc(msg.senderName)}</span><span class="time">${time}</span>`;
+        html += `<div class="content">${esc(msg.content.slice(0, 200))}${msg.content.length > 200 ? '...' : ''}</div>`;
+        if (msg.riskResult && msg.riskResult.riskLevel && msg.riskResult.riskLevel !== 'safe' && msg.riskResult.riskLevel !== 'low') {
+          html += `<span class="risk ${msg.riskResult.riskLevel}">${msg.riskResult.riskLevel.toUpperCase()} (${msg.riskResult.riskScore})</span>`;
+        }
+        html += `</div>`;
+      }
+      if (pkg.messages.length > 50) {
+        html += `<p class="msg-count">... 僅顯示前 50 條（共 ${pkg.messages.length} 條）</p>`;
+      }
+      html += `</div>`;
+
+      results.innerHTML = html;
+    }
+
+    function esc(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

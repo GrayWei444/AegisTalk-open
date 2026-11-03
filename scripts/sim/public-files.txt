@@ -1,0 +1,4 @@
+# packages/pwa/public 底下「建置時就要讀到」或「首頁 script 直接載入」的小檔（remote-run.sh 不送 public/）。
+# remote-run.sh 逐一 `git show <ref>:packages/pwa/public/<path>` 取出。
+# AegisTalk：index.html 的主題腳本是內嵌的，建置不讀 public/ 裡的任何檔；sql-wasm.wasm 由 prepare.sh 從 sql.js 複製。
+# 音效、語音模型、臉部模型執行時 404 不影響聊天與群組。

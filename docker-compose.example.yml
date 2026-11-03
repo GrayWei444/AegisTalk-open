@@ -1,0 +1,101 @@
+# Example self-hosting stack for the AegisTalk chat server: API + EMQX broker (+ optional static web).
+# See docs/SELF_HOSTING.md. Every port is published on 127.0.0.1 only: put a TLS reverse proxy (Caddy) in front.
+#
+#   cp api/.env.example api/.env             # fill in; leave AEGIS_MQTT_JWT_SECRET empty there
+#   cat > .env <<EOF                          # values shared by the API, the broker and compose
+#   AEGIS_MQTT_JWT_SECRET=$(openssl rand -hex 32)
+#   EMQX_NODE_COOKIE=$(openssl rand -hex 32)
+#   EMQX_DASHBOARD_PASSWORD=$(openssl rand -hex 16)
+#   EOF
+#   docker compose -f docker-compose.example.yml up -d
+#   docker compose -f docker-compose.example.yml exec -u 10001 api python -m chat.invites create --uses 5
+#
+# With Web Push: set CHAT_PIP_EXTRAS="-r requirements-webpush.txt" in .env (and the VAPID keys in api/.env).
+# With FCM: "-r requirements-fcm.txt" and mount the service account JSON read-only.
+
+services:
+  api:
+    image: python:3.12.14-slim-bookworm
+    working_dir: /app
+    # pip as root, then run as an unprivileged user (uid 10001) that owns only /data.
+    # --no-proxy-headers: the app resolves the client IP itself (CHAT_TRUSTED_PROXIES + CHAT_PROXY_TOKEN).
+    # All lines at the same indentation: YAML folds them into one line (a deeper-indented line would keep its line
+    # break, and sh would then run "setpriv" without its program).
+    command: >-
+      sh -c "pip install --no-cache-dir --root-user-action=ignore -r requirements-chat.txt $${CHAT_PIP_EXTRAS} &&
+      mkdir -p /data && chown 10001:10001 /data &&
+      exec setpriv --reuid=10001 --regid=10001 --clear-groups
+      uvicorn chat_app:create_app --factory --host 0.0.0.0 --port 8000 --no-proxy-headers"
+    env_file: [api/.env]
+    environment:
+      AEGIS_MQTT_JWT_SECRET: ${AEGIS_MQTT_JWT_SECRET:?put AEGIS_MQTT_JWT_SECRET in .env next to this file}
+      AEGIS_MQTT_HOST: emqx
+      AEGIS_MQTT_PORT: "1883"
+      CHAT_PIP_EXTRAS: ${CHAT_PIP_EXTRAS:-}
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ./api:/app:ro
+      - chat-data:/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks: [chat]
+    depends_on: [emqx]
+    restart: unless-stopped
+    # only what the start command needs (chown /data, drop to uid 10001); no privilege escalation afterwards.
+    # Better for production: build an image with the requirements installed (pip --require-hashes) instead of
+    # installing them at every start.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETUID, SETGID]
+    security_opt: ["no-new-privileges:true"]
+
+  emqx:
+    # EMQX 5.8.x is Apache-2.0; 5.9 and later are under the Business Source License (see docs/SELF_HOSTING.md).
+    image: emqx/emqx:5.8.9
+    environment:
+      # Erlang distribution cookie: anyone on the network with it controls the broker. Never the default.
+      EMQX_NODE__COOKIE: ${EMQX_NODE_COOKIE:?put EMQX_NODE_COOKIE in .env next to this file}
+      # The JWT secret is not in base.hocon: it is this environment variable (same value as the API's).
+      EMQX_AUTHENTICATION__1__SECRET: ${AEGIS_MQTT_JWT_SECRET:?put AEGIS_MQTT_JWT_SECRET in .env next to this file}
+      # Inside the container the listeners bind to all interfaces; only ws and the dashboard are published,
+      # on 127.0.0.1. tcp 1883 stays on the compose network (the API's "device replaced" notices).
+      EMQX_LISTENERS__TCP__DEFAULT__BIND: "0.0.0.0:1883"
+      EMQX_LISTENERS__WS__DEFAULT__BIND: "0.0.0.0:8083"
+      EMQX_DASHBOARD__LISTENERS__HTTP__BIND: "0.0.0.0:18083"
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:?put EMQX_DASHBOARD_PASSWORD in .env next to this file}
+    volumes:
+      # authentication (JWT only), authorization (token ACL only, no_match = deny), listeners, limits
+      - ./emqx/base.hocon.example:/opt/emqx/etc/base.hocon:ro
+      - emqx-data:/opt/emqx/data
+    ports:
+      - "127.0.0.1:8083:8083"     # MQTT over WebSocket, path /mqtt (the reverse proxy serves it as wss://)
+      - "127.0.0.1:18083:18083"   # dashboard (do not change authentication/authorization there)
+    networks: [chat]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+
+  # Optional: serve the built PWA (packages/pwa/dist) on 127.0.0.1:8080 —
+  #   docker compose -f docker-compose.example.yml --profile web up -d
+  # or let your TLS reverse proxy serve the folder directly.
+  web:
+    profiles: ["web"]
+    image: caddy:2.10.2-alpine
+    command: ["caddy", "file-server", "--root", "/srv", "--listen", ":8080"]
+    volumes:
+      - ./packages/pwa/dist:/srv:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks: [chat]
+    restart: unless-stopped
+
+networks:
+  chat:
+    # fixed subnet: the host's reverse proxy reaches the API through the gateway 172.30.0.1
+    # (that is the address CHAT_TRUSTED_PROXIES must list)
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
+
+volumes:
+  chat-data:
+  emqx-data:

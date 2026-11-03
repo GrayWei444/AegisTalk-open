@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1A237E"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <!-- Call icon -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📞"
+        android:textSize="80sp"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Call type title -->
+    <TextView
+        android:id="@+id/callTitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Incoming Call"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Caller name -->
+    <TextView
+        android:id="@+id/callerNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unknown"
+        android:textColor="#E0E0E0"
+        android:textSize="22sp"
+        android:layout_marginBottom="64dp" />
+
+    <!-- Accept / Reject buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:layout_marginBottom="24dp">
+
+        <!-- Reject button -->
+        <Button
+            android:id="@+id/rejectCallButton"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="12dp"
+            android:backgroundTint="#C62828"
+            android:text="Reject"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Accept button -->
+        <Button
+            android:id="@+id/acceptCallButton"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:backgroundTint="#2E7D32"
+            android:text="Accept"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AegisTalk"
+        android:textColor="#7986CB"
+        android:textSize="14sp"
+        android:gravity="center" />
+
+</LinearLayout>

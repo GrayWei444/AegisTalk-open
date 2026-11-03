@@ -1,0 +1,331 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Design Tokens (CSS Variables)
+   白標系統可透過 ConfigProvider 動態覆蓋
+   ============================================ */
+
+:root {
+  /* 表面色 */
+  --surface-primary: #f8fafc;
+  --surface-secondary: #ffffff;
+  --surface-tertiary: #f1f5f9;
+  --surface-elevated: #ffffff;
+  --surface-border: #e2e8f0;
+
+  /* 品牌色 */
+  --accent: #26c6da;
+  --accent-light: #4dd0e1;
+  --accent-dark: #00acc1;
+  --accent-soft: rgba(38, 198, 218, 0.08);
+
+  /* 文字色 */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+
+  /* 訊息氣泡 */
+  --bubble-sent: #22c55e;
+  --bubble-sent-text: #ffffff;
+  --bubble-received: #f1f5f9;
+  --bubble-received-text: #1e293b;
+}
+
+.dark {
+  --surface-primary: #000000;
+  --surface-secondary: #0a0a0a;
+  --surface-tertiary: #161616;
+  --surface-elevated: #1c1c1c;
+  --surface-border: #2a2a2a;
+
+  --accent: #4dd0e1;
+  --accent-light: #80deea;
+  --accent-dark: #26c6da;
+  --accent-soft: rgba(77, 208, 225, 0.08);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+
+  --bubble-sent: #22c55e;
+  --bubble-sent-text: #ffffff;
+  --bubble-received: #1a3050;
+  --bubble-received-text: #f1f5f9;
+}
+
+/* ============================================
+   全域基礎樣式
+   ============================================ */
+
+html {
+  /* 字體大小基準（Tailwind rem-based → 整個 UI 等比例縮放）。
+     112.5% = 18px，全 app 放大後的新基準；fontScaleStore 會覆寫 --app-font-scale。 */
+  font-size: var(--app-font-scale, 112.5%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans TC', sans-serif;
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================
+   固定手機外殼（字體放大時畫面不可整頁捲動 / 水平捲動）
+   - html/body 鎖死、永不捲動，避免放大字體後整個視窗可上下左右拖移
+   - #root 是唯一的捲動容器：水平永遠 clip（手機不該有橫向捲軸）、
+     垂直僅在內容真的超過可視高度時才捲（如註冊長表單），主聊天殼用
+     h-[100dvh] 對齊「可視」視窗高度 → 不會因 100vh 比可視區高而漂出捲動
+   ============================================ */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+#root {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   字級上限（accessibility 放大不讓「本來就大」的字再變大）
+   原則：以「大部分人能看清楚」為標準，超過上限就不再放大。
+   - 小～中字（xs~lg）隨 --app-font-scale 放大 → 真正提升可讀性
+   - 大字（xl/2xl/3xl）多為標題 / 好友碼 / 金額 / PIN 數字等「本來就夠大」的
+     閱讀文字：用 min(rem, px) 設上限，放大到上限即停；本來就超過上限者
+     （如好友碼 text-3xl 在 normal 已 33.75px）會被收斂到上限
+   - 4xl 以上幾乎都是裝飾性 emoji/圖示（💬🛡️📞✅），維持原樣不設限
+   注意：放在所有 @tailwind utilities 之後且未進 @layer → unlayered 規則
+   會勝過 Tailwind 的 layered utility（同 specificity 但 cascade layer 較高）。
+   ============================================ */
+.text-xl  { font-size: min(1.25rem, 26px); }
+.text-2xl { font-size: min(1.5rem, 28px); }
+.text-3xl { font-size: min(1.875rem, 30px); }
+
+/* 隱藏滾動條但保持可滾動 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 模糊保護效果 */
+.blur-protect {
+  filter: blur(10px);
+  transition: filter 0.15s ease-in-out;
+}
+
+.blur-protect.revealed {
+  filter: blur(0);
+}
+
+/* 浮水印 */
+.watermark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0.1;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transform: rotate(-30deg);
+  user-select: none;
+}
+
+/* ============================================
+   訊息氣泡 (使用 CSS 變數，白標可覆蓋)
+   ============================================ */
+
+.message-bubble {
+  @apply rounded-2xl px-4 py-2.5 max-w-[75%];
+  transition: transform 0.1s ease;
+}
+
+.message-bubble.sent {
+  background-color: var(--bubble-sent);
+  color: var(--bubble-sent-text);
+  @apply ml-auto rounded-br-sm;
+}
+
+.message-bubble.received {
+  background-color: var(--bubble-received);
+  color: var(--bubble-received-text);
+  @apply mr-auto rounded-bl-sm;
+}
+
+/* ============================================
+   Glass / Backdrop 效果
+   ============================================ */
+
+.glass {
+  background: rgba(20, 38, 56, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ============================================
+   安全區域（iPhone 瀏海）
+   ============================================ */
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* PWA 全螢幕時隱藏 Safari UI */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* ============================================
+   互動元素
+   ============================================ */
+
+/* 禁用長按選取 */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button,
+a,
+[role="button"],
+.touch-target {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+img.clickable {
+  pointer-events: auto;
+}
+
+/* 觸控反饋 */
+.touch-feedback {
+  @apply active:opacity-70 transition-opacity duration-100;
+}
+
+/* ============================================
+   統一輸入框樣式
+   ============================================ */
+
+.input-base {
+  background-color: var(--surface-tertiary);
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-base:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+
+.input-base::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ============================================
+   Ambient Trust Border System
+   AI 透過環境色彩表達信任等級
+   ============================================ */
+
+.ambient-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.ambient-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  border: 0 solid transparent;
+  transition: border-color 0.8s ease-in-out, border-width 0.8s ease-in-out, opacity 0.8s ease-in-out;
+  opacity: 0;
+}
+
+/* 安全：無邊框 */
+.ambient-safe::after {
+  border-width: 0;
+  opacity: 0;
+}
+
+/* 注意：溫暖琥珀色邊緣 */
+.ambient-caution::after {
+  border-width: 2px;
+  border-color: #f59e0b;
+  opacity: 0.4;
+}
+
+/* 危險：紅色脈衝 */
+.ambient-danger::after {
+  border-width: 2px;
+  border-color: #ef4444;
+  opacity: 0.6;
+  animation: ambient-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes ambient-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================
+   Message Risk Border
+   高風險訊息的環繞邊框指示（更顯眼）
+   ============================================ */
+
+.msg-risk-high {
+  border: 2px solid #ef4444 !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.msg-risk-critical {
+  border: 3px solid #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  animation: critical-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes critical-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
+}
