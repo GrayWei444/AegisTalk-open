@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Friend list:** the time of the last message ("just now", "5 min ago", "3 hr ago", "2 d ago") is shown in the app's
+  language; it was always Chinese ("剛剛", "5 分鐘前"), also with the app in English, Japanese or Korean.
+
 ## 1.0.0 — 2026-11-03
 
 First public source release of AegisTalk Chat, the self-hostable chat edition of AegisTalk, under the MIT license.

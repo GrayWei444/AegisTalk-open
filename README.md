@@ -15,10 +15,8 @@
 > **English** — AegisTalk Chat is an end-to-end encrypted chat and call app (Android + web) whose messages go phone
 > to phone, with a small server you run yourself. MIT. Full English README: [README.en.md](README.en.md).
 
-<!-- 示範 GIF 位置（30 秒內）。必須在第 9 步用「真的在跑的 App」（兩台裝置或兩個瀏覽器）連「本機自架、照 docs/SELF_HOSTING.md
-     架起來的伺服器」錄製——不能用設計稿、擺拍畫面或剪接時間。存成 docs/assets/demo.gif，再把下面那段佔位文字換成：
-     <p align="center"><img src="docs/assets/demo.gif" width="900" alt="兩支手機透過自架伺服器聊天與通話"></p> -->
-<p align="center"><i>示範影片：之後補上。</i></p>
+<p align="center"><img src="docs/assets/demo.gif" width="900" alt="兩支手機透過自架伺服器傳訊息、傳照片，最後打電話"></p>
+<p align="center"><sub>實際的社群版網頁版，在兩個手機大小的瀏覽器視窗裡連本機自架的伺服器錄製：Alice 傳訊息、Bob 回覆、Alice 傳照片，最後 Alice 打電話給 Bob。</sub></p>
 
 ## 功能
 
@@ -50,6 +48,10 @@ chat 伺服器分兩部分：API 負責只有金鑰的帳號、發 broker 的 to
 - **iOS**：預計 v1.1。
 
 第一次開啟時，App 會先問要用哪一台伺服器，接著設定 PIN 碼、取名字、註冊（伺服器要求的話，要輸入邀請碼）；之後可以在設定裡換伺服器。換新手機時由舊手機轉移資料；手機遺失時，要靠你事先在 App 的設定裡做好的離線恢復包（用密語保護的檔案，伺服器上沒有備份）。
+
+加好友在「加好友」視窗，有三個分頁：掃描對方手機上的 QR Code、顯示自己的 QR Code 讓對方掃，或輸入對方分享的好友碼。用好友碼加的好友會標成「未驗證」，之後當面掃 QR Code 就能升級。
+
+<p align="center"><img src="docs/assets/add-friend.jpg" width="240" alt="「加好友」視窗：掃描、QR Code、好友碼三個分頁"></p>
 
 Android App 是社群版：「AegisTalk Chat (community)」，application id `com.aegisrd.talk.community`（自架的人可以用自己的
 id 與名稱建置；[SELF_HOSTING · Android app](docs/SELF_HOSTING.md#android-app-community-flavour)，英文）。

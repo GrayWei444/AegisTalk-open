@@ -1,5 +1,6 @@
 import type { Friend } from '../../types';
 import { useContactRisk } from '../../hooks/useContactRisk';
+import { useLanguage } from '../../i18n';
 import { UserAvatar } from '../common';
 
 interface FriendItemProps {
@@ -13,15 +14,16 @@ interface FriendItemProps {
 export function FriendItem({ friend, isSelected, onClick, pendingLabel }: FriendItemProps) {
   // 頭像外框依累積風險分數著色（safe綠 / low黃 / medium橙 / high紅）
   const riskLevel = useContactRisk(friend.publicKey);
+  const { t } = useLanguage();
 
   const formatTime = (timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
 
-    if (diff < 60000) return '剛剛';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分鐘前`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小時前`;
-    return `${Math.floor(diff / 86400000)} 天前`;
+    if (diff < 60000) return t('friendList.justNow');
+    if (diff < 3600000) return t('friendList.minutesAgo', { minutes: Math.floor(diff / 60000) });
+    if (diff < 86400000) return t('friendList.hoursAgo', { hours: Math.floor(diff / 3600000) });
+    return t('friendList.daysAgo', { days: Math.floor(diff / 86400000) });
   };
 
   return (

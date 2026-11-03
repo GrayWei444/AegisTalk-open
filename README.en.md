@@ -12,11 +12,9 @@
   <a href="README.md">繁體中文</a> ｜ <b>English</b>
 </p>
 
-<!-- DEMO GIF SLOT (≤ 30 s). It MUST be recorded in step 9 from the REAL running app (two devices or browsers) against a
-     LOCAL self-hosted server set up with docs/SELF_HOSTING.md — no mock-ups, no staged screens, no edited timing.
-     Save it as docs/assets/demo.gif and replace the placeholder paragraph below with:
-     <p align="center"><img src="docs/assets/demo.gif" width="900" alt="Two phones chat and call through a self-hosted server"></p> -->
-<p align="center"><i>Demo recording: to be added.</i></p>
+<p align="center"><img src="docs/assets/demo.gif" width="900" alt="Two phones exchange messages and a photo through a self-hosted server, then one calls the other"></p>
+<p align="center"><sub>The real community web build in two phone-sized browser windows, recorded against a local self-hosted server
+(Traditional Chinese UI): Alice sends a message, Bob replies, Alice sends a photo, then Alice calls Bob.</sub></p>
 
 ## Features
 
@@ -54,6 +52,12 @@ On first launch the app asks which server to use, then you set a PIN, choose a n
 if the server requires one); the server can be changed later in Settings. A new phone takes over from the old one by
 device transfer; for a lost phone, keep the offline recovery kit the app lets you create in Settings (a file protected
 by a passphrase; the server keeps no copy).
+
+Friends are added in the "Add friend" window, which has three tabs: scan the other phone's QR code, show your own QR code
+for them to scan, or enter the friend code they shared with you. A friend added by friend code is marked "unverified"
+until you scan a QR code face to face.
+
+<p align="center"><img src="docs/assets/add-friend.jpg" width="240" alt="The Add friend window (Traditional Chinese UI) with the Scan, QR Code and Friend code tabs"></p>
 
 The Android app is the community flavour: "AegisTalk Chat (community)", application id `com.aegisrd.talk.community`
 (self-hosters can build it under their own id and name; [SELF_HOSTING · Android app](docs/SELF_HOSTING.md#android-app-community-flavour)).

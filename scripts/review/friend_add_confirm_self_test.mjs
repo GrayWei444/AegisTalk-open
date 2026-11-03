@@ -441,6 +441,27 @@ await check('wiring: "added" only once the entry is gone; friend list badge; cha
   }
 });
 
+await check('the friend list\'s relative time ("just now", "5 min ago") comes from the locale, not hard-coded Chinese', () => {
+  const item = src('components/FriendList/FriendItem.tsx');
+  const code = item.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(code, /[぀-ヿ㐀-鿿가-힯]/, 'FriendItem has no CJK text outside comments');
+  const keys = { justNow: null, minutesAgo: 'minutes', hoursAgo: 'hours', daysAgo: 'days' };
+  for (const [k, p] of Object.entries(keys)) {
+    assert.ok(item.includes(`t('friendList.${k}'${p ? `, { ${p}: ` : ')'}`), `FriendItem uses friendList.${k}${p ? ` with {${p}}` : ''}`);
+  }
+  for (const lang of ['en', 'ja', 'ko', 'zh-CN', 'zh-TW']) {
+    const loc = src(`i18n/locales/${lang}.ts`);
+    const start = loc.indexOf('\n  friendList: {');
+    const sec = loc.slice(start, loc.indexOf('\n  },', start));
+    assert.ok(start > 0 && sec.length > 20, `${lang} has friendList`);
+    for (const [k, p] of Object.entries(keys)) {
+      const v = sec.match(new RegExp(`\\n    ${k}: (['"])([^'"\\n]+)\\1,`));
+      assert.ok(v, `${lang} friendList.${k}`);
+      if (p) assert.ok(v[2].includes(`{${p}}`), `${lang} friendList.${k} has {${p}}: ${v[2]}`);
+    }
+  }
+});
+
 Date.now = realDateNow;
 if (failed) { console.log(`\n${failed} check(s) FAILED`); process.exit(1); }
 console.log('\nALL PASS');
