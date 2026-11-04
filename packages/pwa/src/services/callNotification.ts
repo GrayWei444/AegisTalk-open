@@ -10,6 +10,7 @@ import { devLog, devWarn } from '../utils/devLog';
  */
 
 import { isNativeApp, getPlatform } from './capacitor';
+import { tr } from '../i18n/tr';
 
 /**
  * 來電資料
@@ -175,10 +176,10 @@ async function showNativeCallNotification(data: IncomingCallData): Promise<boole
       notifications: [
         {
           id: notificationId,
-          title: isVideoCall ? '📹 視訊來電' : '📞 來電',
+          title: isVideoCall ? `📹 ${tr('call.incomingVideoCall')}` : `📞 ${tr('call.incomingCall')}`,
           body: isVideoCall
-            ? `${data.callerName} 正在發起視訊通話`
-            : `${data.callerName} 正在呼叫你`,
+            ? tr('call.isVideoCallingYou', { name: data.callerName })
+            : tr('call.isCallingYou', { name: data.callerName }),
           channelId: 'incoming_call_channel',  // 使用高優先級頻道
           actionTypeId: 'INCOMING_CALL',
           ongoing: platform === 'android',  // Android: 持續顯示
@@ -224,12 +225,12 @@ async function registerCallNotificationActions(): Promise<void> {
           actions: [
             {
               id: 'accept',
-              title: '📞 接聽',
+              title: `📞 ${tr('call.acceptCall')}`,
               foreground: true,  // 點擊後打開 App
             },
             {
               id: 'reject',
-              title: '❌ 拒接',
+              title: `❌ ${tr('call.rejectCall')}`,
               destructive: true,  // 紅色按鈕
             },
           ],

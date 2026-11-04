@@ -326,8 +326,8 @@ export class Phone {
     await this.headerButton(this.t('friendList.addFriend')).click();
     await this.btn(this.t('friendCode.friendCodeTab'), { exact: true }).click();
     await p.getByPlaceholder(this.sim.profile.codePlaceholder).fill(code);
-    // AegisTalk 的送出鈕文字「加入好友」寫死在 AddFriendModal（不走 i18n）
-    const submit = this.talk ? '加入好友' : this.t('astra.friendAdd.addFriend');
+    // AegisTalk 的送出鈕＝friendList.addFriend（1.0.1 起走 i18n，以前寫死「加入好友」）
+    const submit = this.talk ? this.t('friendList.addFriend') : this.t('astra.friendAdd.addFriend');
     await p.locator('.fixed.inset-0.z-50').getByRole('button', { name: submit, exact: true }).click();
     // 成功後彈窗 2 秒自己關；失敗會顯示紅字
     await sleep(2500);

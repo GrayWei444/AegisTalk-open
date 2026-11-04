@@ -123,8 +123,8 @@ MUTANTS = [
   ('web-push registration never remembered', S+'webPush.ts', [("    writeFlag(registeredFlag(publicKeyBase64));\n", "")], [WEBPUSH]),
   # （第 5d 步起推播的「是不是視訊」只看驗過的響鈴 token；沒驗過的來電推播根本不是來電的樣子 —— 兩個 mutant 改對著新的寫法）
   ('push isVideoCall taken from the push', S+'pushDisplay.ts', [("      const isVideoCall = ring.video === true;", "      const isVideoCall = ring.video === true || !!d.isVideoCall;")], [DISPLAY]),
-  ('push caller name shown', S+'pushDisplay.ts', [("    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: '可能有人打給你，打開 AegisTalk 看看' };",
-     "    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: typeof d.callerName === 'string' ? `${d.callerName} 正在呼叫你` : '可能有人打給你，打開 AegisTalk 看看' };")], [DISPLAY]),
+  ('push caller name shown', S+'pushDisplay.ts', [("    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: s.callHint };",
+     "    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: typeof d.callerName === 'string' ? s.callBody.replace('{name}', d.callerName) : s.callHint };")], [DISPLAY]),
   ('server keeps subscriptions under another VAPID key', 'api/chat/push.py', [('            return "gone" if status in (401, 403, 404, 410) else "failed"', '            return "gone" if status in (404, 410) else "failed"')], ['py:webpush']),
   # ── MQTT（mqtt.ts） ──
   ('transient signals never expire at the broker', S+'mqtt.ts', [

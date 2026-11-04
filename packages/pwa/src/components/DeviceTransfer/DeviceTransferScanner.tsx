@@ -99,7 +99,7 @@ export function DeviceTransferScanner({
           <div className="bg-white p-4 rounded-2xl">
             <img
               src={display.qrCode}
-              alt="Device Transfer QR"
+              alt={t('deviceTransfer.qrAlt')}
               className="w-64 h-64"
             />
           </div>

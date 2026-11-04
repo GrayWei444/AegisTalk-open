@@ -7,6 +7,8 @@
  *   3. 解析不了、不認得的型別 → 一則固定的「新訊息」（userVisibleOnly 一定要顯示一則）
  *   4. service worker 用它：原始碼裡沒有從推播資料拿 callerName／callerAvatar／title／body／icon／tag／alertType／protectedName；
  *      來電的樣子只給 display.ring；沒驗過的來電通知點了只開 App、滑掉不送「拒接」
+ *   5. 文字是 App 的語言（1.0.1）：App 寫進 Cache API 的翻譯（PushStrings，services/pushStrings.ts）；壞掉、缺格、太長 → 整份不用、
+ *      用預設（繁中）；名字照樣只換進 {name}，推播裡的東西照樣不用
  * Run: node scripts/review/push_display_self_test.mjs
  */
 import assert from 'node:assert/strict';
@@ -22,7 +24,7 @@ const require = createRequire(root + 'packages/pwa/package.json');
 const dir = mkdtempSync(join(tmpdir(), 'pushdisp-'));
 await require('esbuild').build({ entryPoints: [SRC + '/services/pushDisplay.ts'], bundle: true, platform: 'node', format: 'esm',
   outfile: join(dir, 'p.mjs'), logLevel: 'silent' });
-const { pushDisplayFor } = await import(pathToFileURL(join(dir, 'p.mjs')));
+const { pushDisplayFor, cleanPushStrings, DEFAULT_PUSH_STRINGS } = await import(pathToFileURL(join(dir, 'p.mjs')));
 const NOW = 1_900_000_000_000;
 
 // 1 ＋ 2
@@ -64,8 +66,8 @@ console.log('PASS unparsable or unknown pushes show one fixed "new message" noti
 // 4
 const sw = readFileSync(SRC + '/sw-custom.ts', 'utf8');
 const pushHandler = sw.slice(sw.indexOf("self.addEventListener('push'"), sw.indexOf("self.addEventListener('notificationclick'"));
-assert.match(pushHandler, /event\.waitUntil\(decideRing\(data, Date\.now\(\)\)\.then\(\(ring\) => showPushNotification\(pushDisplayFor\(data, Date\.now\(\), ring\)\)\)\)/,
-  'the push handler shows pushDisplayFor(...) only, with the ring decided from the signed token (decideRing)');
+assert.match(pushHandler, /event\.waitUntil\(Promise\.all\(\[decideRing\(data, Date\.now\(\)\), loadPushStrings\(\)\]\)\.then\(\(\[ring, s\]\) => showPushNotification\(pushDisplayFor\(data, Date\.now\(\), ring, s\), s\)\)\)/,
+  'the push handler shows pushDisplayFor(...) only, with the ring decided from the signed token (decideRing) and the app\'s texts (loadPushStrings)');
 const showFn = sw.slice(sw.indexOf('async function showPushNotification('), sw.indexOf('async function showLocalCallNotification('));
 assert.ok(showFn.length > 200, 'showPushNotification found');
 // 推播那條路（push 事件、組通知、點通知）不看推播裡的名字、文字、圖示、id；名字只來自 App 視窗自己（postMessage）
@@ -78,3 +80,23 @@ assert.match(showFn, /if \(display\.kind === 'incoming_call' && display\.ring\) 
 assert.match(showFn, /type: display\.kind === 'incoming_call' \? 'message' : display\.kind,/,
   'an unverified call notification is a plain one: a click only opens the app, a swipe sends no REJECT_CALL');
 console.log('PASS the service worker builds notifications only from pushDisplayFor');
+
+// 5
+const EN = { callTitle: 'Incoming call', videoCallTitle: 'Incoming video call', callBody: '{name} is calling you',
+  videoCallBody: '{name} is starting a video call', openToAnswer: 'Open AegisTalk to answer', callHint: 'Someone may be calling you',
+  guardian: 'New guardian notification', checkIn: 'New check-in', message: 'You have a new message', accept: 'Accept', reject: 'Reject' };
+assert.deepEqual(cleanPushStrings(EN), EN, 'a complete table is used as is');
+assert.deepEqual(pushDisplayFor({ type: 'incoming_call' }, NOW, { name: 'Mom', video: true }, EN),
+  { kind: 'incoming_call', ring: true, isVideoCall: true, tag: 'incoming-call', title: '📹 Incoming video call', body: 'Mom is starting a video call' });
+assert.deepEqual(pushDisplayFor({ type: 'incoming_call', callerName: 'Bank' }, NOW, null, EN),
+  { kind: 'incoming_call', ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: 'Someone may be calling you' }, 'unverified: still plain, nameless');
+assert.equal(pushDisplayFor({ type: 'message', body: 'click here' }, NOW, null, EN).body, 'You have a new message');
+assert.equal(pushDisplayFor({ type: 'incoming_call' }, NOW, { name: '$& $1', video: false }, EN).body, '$& $1 is calling you', 'the name is inserted literally');
+for (const bad of [null, 'x', [], { ...EN, reject: undefined }, { ...EN, accept: 42 }, { ...EN, message: '   ' }, { ...EN, callHint: 'x'.repeat(201) }]) {
+  assert.equal(cleanPushStrings(bad), null, `a broken table is not used: ${JSON.stringify(bad)?.slice(0, 60)}`);
+}
+assert.equal(DEFAULT_PUSH_STRINGS.callBody, '{name} 正在呼叫你', 'the default is the app\'s default language');
+assert.match(sw, /const s = await loadPushStrings\(\);\s*await showPushNotification\(pushDisplayFor\(\{ type: 'incoming_call' \}, Date\.now\(\), \{ name, video: p\.isVideoCall === true \}, s\), s\);/,
+  'the app window\'s own call notification uses the same texts');
+assert.match(showFn, /title: `\$\{display\.isVideoCall \? '📹' : '📞'\} \$\{s\.accept\}`/, 'the action buttons too');
+console.log('PASS the texts are the app\'s language (a broken or missing table → the default); push contents are still ignored');

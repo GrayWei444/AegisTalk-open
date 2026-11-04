@@ -9,6 +9,7 @@ import { downloadManager, type DownloadItem } from '../../services/downloadManag
 import { formatFileSize } from '../../services/fileShare';
 import { DownloadIcon, FolderIcon, FileTypeIcon } from '../common/icons';
 import { openFile } from '../../services/fileOpener';
+import { useLanguage } from '../../i18n';
 
 interface DownloadManagerProps {
   /** 是否顯示 */
@@ -18,6 +19,7 @@ interface DownloadManagerProps {
 }
 
 export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
+  const { t, language } = useLanguage();
   const [downloads, setDownloads] = useState<DownloadItem[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
@@ -66,7 +68,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
 
   // 格式化時間
   const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString('zh-TW', {
+    return new Date(timestamp).toLocaleString(language, {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -81,7 +83,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
       <div className="bg-surface-secondary w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
         {/* 標題列 */}
         <div className="px-4 py-3 border-b border-[var(--surface-border)] flex items-center justify-between">
-          <h2 className="text-white font-semibold text-lg">下載管理</h2>
+          <h2 className="text-white font-semibold text-lg">{t('file.downloadsTitle')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-on-surface-secondary hover:text-on-surface-primary transition-colors"
@@ -102,7 +104,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
                 : 'text-on-surface-tertiary hover:text-on-surface-primary'
             }`}
           >
-            進行中 ({activeDownloads.length})
+            {t('file.downloadsActive', { count: activeDownloads.length })}
           </button>
           <button
             onClick={() => setActiveTab('history')}
@@ -112,7 +114,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
                 : 'text-on-surface-tertiary hover:text-on-surface-primary'
             }`}
           >
-            歷史 ({historyDownloads.length})
+            {t('file.downloadsHistory', { count: historyDownloads.length })}
           </button>
         </div>
 
@@ -123,7 +125,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
             activeDownloads.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="mb-3 flex justify-center text-on-surface-tertiary"><DownloadIcon size={40} /></div>
-                <p className="text-on-surface-tertiary">沒有進行中的下載</p>
+                <p className="text-on-surface-tertiary">{t('file.noActiveDownloads')}</p>
               </div>
             ) : (
               <div className="divide-y divide-dark-border">
@@ -164,7 +166,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
               {historyDownloads.length === 0 ? (
                 <div className="py-12 text-center">
                   <div className="mb-3 flex justify-center text-on-surface-tertiary"><FolderIcon size={40} /></div>
-                  <p className="text-on-surface-tertiary">沒有下載歷史</p>
+                  <p className="text-on-surface-tertiary">{t('file.noDownloadHistory')}</p>
                 </div>
               ) : (
                 <>
@@ -175,7 +177,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
                         onClick={handleClearHistory}
                         className="text-on-surface-tertiary hover:text-red-400 text-sm transition-colors"
                       >
-                        清除全部歷史
+                        {t('file.clearDownloadHistory')}
                       </button>
                     </div>
                   )}
@@ -206,7 +208,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
                             {download.status === 'failed' && (
                               <>
                                 <span className="text-on-surface-tertiary">•</span>
-                                <span className="text-red-400">失敗</span>
+                                <span className="text-red-400">{t('file.downloadFailed')}</span>
                               </>
                             )}
                           </div>
@@ -218,7 +220,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
                             <button
                               onClick={() => handleOpenFile(download)}
                               className="p-2 text-on-surface-tertiary hover:text-mist-400 transition-colors"
-                              title="開啟"
+                              title={t('common.open')}
                             >
                               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -228,7 +230,7 @@ export function DownloadManagerUI({ isOpen, onClose }: DownloadManagerProps) {
                           <button
                             onClick={() => handleRemove(download.id)}
                             className="p-2 text-on-surface-tertiary hover:text-red-400 transition-colors"
-                            title="移除"
+                            title={t('common.remove')}
                           >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

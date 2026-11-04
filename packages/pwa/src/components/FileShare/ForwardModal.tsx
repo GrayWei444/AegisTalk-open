@@ -18,6 +18,7 @@ import type { RatchetMessage } from '../../services/crypto';
 import { generateId } from '../../utils/secureId';
 import { useChatStore } from '../../stores/chatStore';
 import { useGroupChat } from '../../hooks/useGroupChat';
+import { useLanguage } from '../../i18n';
 
 interface ForwardModalProps {
   /** 要轉發的檔案 */
@@ -67,6 +68,7 @@ export function ForwardModal({
   onClose,
   onComplete,
 }: ForwardModalProps) {
+  const { t } = useLanguage();
   const [targets, setTargets] = useState<ForwardTarget[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -160,7 +162,7 @@ export function ForwardModal({
     });
 
     // 更新好友的最後訊息顯示
-    const lastMessageText = type === 'file' ? '檔案' : content.slice(0, 50);
+    const lastMessageText = type === 'file' ? t('file.genericFile') : content.slice(0, 50);
     useChatStore.setState({
       friends: useChatStore.getState().friends.map((f) =>
         f.id === targetPubkey
@@ -190,7 +192,7 @@ export function ForwardModal({
         metadata,
       });
     }
-  }, [publicKey]);
+  }, [publicKey, t]);
 
   // 發送加密訊息（P2P 優先 + 本地儲存）
   const sendMessageToUser = useCallback(async (
@@ -245,7 +247,7 @@ export function ForwardModal({
           const content = messageContent || [text, url].filter(Boolean).join('\n');
           setProgress({
             currentTarget: target.name,
-            currentFile: '文字訊息',
+            currentFile: t('forward.textMessage'),
             current,
             total,
             phase: 'encrypting',
@@ -259,7 +261,7 @@ export function ForwardModal({
           current++;
           setProgress({
             currentTarget: target.name,
-            currentFile: '文字訊息',
+            currentFile: t('forward.textMessage'),
             current,
             total,
             phase: 'sending',
@@ -365,14 +367,14 @@ export function ForwardModal({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-on-surface-primary font-medium">傳送完成</p>
+                <p className="text-on-surface-primary font-medium">{t('forward.sent')}</p>
               </div>
             ) : (
               /* 傳送中 */
               <div className="flex flex-col gap-4">
                 {/* 標題 */}
                 <div className="text-center">
-                  <p className="text-on-surface-primary font-medium text-base">傳送中...</p>
+                  <p className="text-on-surface-primary font-medium text-base">{t('forward.sending')}</p>
                   <p className="text-on-surface-tertiary text-xs mt-1">
                     {progress.currentTarget}
                   </p>
@@ -403,7 +405,7 @@ export function ForwardModal({
                   </div>
                   <div className="flex justify-between mt-1.5">
                     <span className="text-on-surface-tertiary text-xs">
-                      {progress.phase === 'encrypting' ? '加密中...' : '傳送中...'}
+                      {progress.phase === 'encrypting' ? t('forward.encrypting') : t('forward.sending')}
                     </span>
                     <span className="text-on-surface-tertiary text-xs">
                       {progress.current}/{progress.total}
@@ -428,14 +430,14 @@ export function ForwardModal({
           </svg>
         </button>
 
-        <h2 className="text-on-surface-primary font-semibold text-lg">傳送給...</h2>
+        <h2 className="text-on-surface-primary font-semibold text-lg">{t('forward.title')}</h2>
 
         <button
           onClick={handleForward}
           disabled={selectedIds.length === 0 || sending}
           className="px-5 py-1.5 bg-mist-500 hover:bg-mist-600 text-white text-sm font-medium rounded-full transition-colors disabled:opacity-40"
         >
-          傳送
+          {t('common.send')}
         </button>
       </header>
 
@@ -452,7 +454,7 @@ export function ForwardModal({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜尋..."
+            placeholder={t('forward.searchPlaceholder')}
             className="w-full pl-9 pr-4 py-2 bg-surface-elevated text-white placeholder:text-on-surface-tertiary rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-mist-500/50"
           />
         </div>
@@ -488,7 +490,7 @@ export function ForwardModal({
             activeTab === 'friend' ? 'text-mist-400' : 'text-on-surface-tertiary'
           }`}
         >
-          好友 ({friendCount})
+          {t('forward.friendsTab', { count: friendCount })}
           {activeTab === 'friend' && (
             <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-mist-500 rounded-full" />
           )}
@@ -500,7 +502,7 @@ export function ForwardModal({
             activeTab === 'group' ? 'text-mist-400' : 'text-on-surface-tertiary'
           }`}
         >
-          群組 ({groupCount})
+          {t('forward.groupsTab', { count: groupCount })}
           {activeTab === 'group' && (
             <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-mist-500 rounded-full" />
           )}
@@ -513,10 +515,10 @@ export function ForwardModal({
           <div className="py-12 text-center">
             <p className="text-on-surface-tertiary text-sm">
               {searchQuery
-                ? '找不到符合的結果'
+                ? t('forward.noMatches')
                 : activeTab === 'group'
-                  ? '尚無群組'
-                  : '尚無好友'}
+                  ? t('group.noGroups')
+                  : t('friendList.noFriends')}
             </p>
           </div>
         ) : (

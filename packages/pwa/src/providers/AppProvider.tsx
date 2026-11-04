@@ -1133,7 +1133,7 @@ export function AppProvider({ children }: AppProviderProps) {
             const msg = cryptoError instanceof Error ? cryptoError.message : String(cryptoError);
             devLog('[DIAG] AppProvider: Crypto init FAILED:', msg);
             console.error('[AppProvider] Crypto init failed:', msg);
-            setError(`加密模組初始化失敗: ${msg}`);
+            setError(getServiceTranslation()('chatApp.cryptoInitFailed', { error: msg }));
             setIsInitializing(false);
             return;
           }
@@ -1141,7 +1141,7 @@ export function AppProvider({ children }: AppProviderProps) {
             // 未載入中也未成功 — 異常狀態，停止等待
             devLog('[DIAG] AppProvider: Crypto not ready and not loading — ABORTING');
             console.error('[AppProvider] Crypto not ready and not loading — aborting wait');
-            setError('加密模組初始化異常');
+            setError(getServiceTranslation()('chatApp.cryptoInitAbnormal'));
             setIsInitializing(false);
             return;
           }
@@ -1231,7 +1231,7 @@ export function AppProvider({ children }: AppProviderProps) {
 
         // Phase 35c: cloudBackup 已移除，社交圖譜備份改由 aegisIdBlob 處理
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Initialization failed';
+        const errorMsg = err instanceof Error ? err.message : getServiceTranslation()('chatApp.initFailed');
         setError(errorMsg);
         setIsInitializing(false);
         console.error('[AppProvider] Init error:', err);

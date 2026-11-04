@@ -6,6 +6,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { voiceMessageService, formatDuration, type VoiceRecordingResult } from '../../services/voiceMessage';
+import { useLanguage } from '../../i18n';
 
 interface VoiceRecordButtonProps {
   /** 錄音完成回調 */
@@ -17,6 +18,7 @@ interface VoiceRecordButtonProps {
 type RecordState = 'idle' | 'recording' | 'processing';
 
 export function VoiceRecordButton({ onRecordComplete, disabled }: VoiceRecordButtonProps) {
+  const { t } = useLanguage();
   const [state, setState] = useState<RecordState>('idle');
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0);
@@ -156,7 +158,7 @@ export function VoiceRecordButton({ onRecordComplete, disabled }: VoiceRecordBut
     return (
       <div className="flex items-center gap-2 px-4 py-2 bg-surface-elevated text-white rounded-full">
         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm">處理中...</span>
+        <span className="text-sm">{t('common.processing')}</span>
       </div>
     );
   }
@@ -178,7 +180,7 @@ export function VoiceRecordButton({ onRecordComplete, disabled }: VoiceRecordBut
         <span className="text-sm font-medium min-w-[40px]">{formatDuration(duration)}</span>
 
         {/* 提示 */}
-        <span className="text-xs opacity-80">點擊發送</span>
+        <span className="text-xs opacity-80">{t('voiceMessage.tapToSend')}</span>
       </button>
     );
   }
@@ -199,7 +201,7 @@ export function VoiceRecordButton({ onRecordComplete, disabled }: VoiceRecordBut
           : 'hover:bg-surface-tertiary text-on-surface-secondary active:bg-red-500 active:text-white active:scale-110'
         }
       `}
-      title="點擊開始錄音，再次點擊停止"
+      title={t('voiceMessage.recordHint')}
     >
       <svg
         className="w-5 h-5"

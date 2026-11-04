@@ -12,8 +12,10 @@ import { CallState } from '../../services/voiceCall';
 import { IncomingCallModal } from './IncomingCallModal';
 import { ActiveCallUI } from './ActiveCallUI';
 import { ext } from '@ext';
+import { useLanguage } from '../../i18n';
 
 export function GlobalVoiceCallUI() {
+  const { t } = useLanguage();
   const {
     callState,
     callInfo,
@@ -37,7 +39,7 @@ export function GlobalVoiceCallUI() {
 
   // 取得通話對方的資訊
   const getPeerInfo = () => {
-    if (!callInfo?.peerId) return { name: 'Unknown', avatar: undefined };
+    if (!callInfo?.peerId) return { name: t('common.unknown'), avatar: undefined };
 
     const friend = getFriendByPublicKey(callInfo.peerId);
     if (friend) {
@@ -48,7 +50,7 @@ export function GlobalVoiceCallUI() {
     }
 
     return {
-      name: callInfo.peerName || `Friend ${callInfo.peerId.slice(0, 8)}...`,
+      name: callInfo.peerName || t('friendList.defaultFriendPrefix', { key: callInfo.peerId.slice(0, 8) }),
       avatar: undefined,
     };
   };

@@ -14,6 +14,7 @@ import { devLog } from '../../utils/devLog';
 
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useThemeStore } from '../../stores/themeStore';
+import { useLanguage } from '../../i18n';
 
 interface PinKeypadProps {
   /** PIN 長度（預設 6） */
@@ -65,6 +66,7 @@ export function PinKeypad({
   const isTouchActive = useRef(false);
   // 取得當前主題
   const { effectiveTheme } = useThemeStore();
+  const { t } = useLanguage();
   const isDark = effectiveTheme === 'dark';
 
   // 重置
@@ -285,7 +287,7 @@ export function PinKeypad({
                   : 'bg-surface-tertiary text-on-surface-primary hover:bg-surface-elevated'
                 }
               `}
-              aria-label={isDelete ? '刪除' : key}
+              aria-label={isDelete ? t('common.delete') : key}
             >
               {isDelete ? (
                 <svg

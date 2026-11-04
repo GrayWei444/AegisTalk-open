@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { XIcon } from './icons';
+import { useLanguage } from '../../i18n';
 import {
   checkCompatibility,
   CompatibilityResult,
@@ -35,6 +36,7 @@ export function UnsupportedVersionModal({
   onDismiss,
   allowDegradedMode = false,
 }: UnsupportedVersionModalProps) {
+  const { t } = useLanguage();
   const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dismissed, setDismissed] = useState(false);
@@ -90,8 +92,8 @@ export function UnsupportedVersionModal({
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">系統版本過舊</h2>
-              <p className="text-white/80 text-sm">需要升級才能使用 AegisTalk</p>
+              <h2 className="text-xl font-bold">{t('compat.title')}</h2>
+              <p className="text-white/80 text-sm">{t('compat.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -101,13 +103,13 @@ export function UnsupportedVersionModal({
           {/* 版本資訊 */}
           <div className="bg-surface-tertiary rounded-lg p-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-on-surface-secondary">您的版本</span>
+              <span className="text-on-surface-secondary">{t('compat.yourVersion')}</span>
               <span className="font-mono text-on-surface-primary">
                 {platform === 'ios' ? 'iOS' : platform === 'android' ? 'Android' : 'Web'} {currentVersion}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-on-surface-secondary">最低需求</span>
+              <span className="text-on-surface-secondary">{t('compat.minimum')}</span>
               <span className="font-mono text-green-600 dark:text-green-400">
                 {platform === 'ios' ? 'iOS' : platform === 'android' ? 'Android' : ''} {minimumVersion}+
               </span>
@@ -118,7 +120,7 @@ export function UnsupportedVersionModal({
           {missingFeatures.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-on-surface-secondary mb-2">
-                不支援的功能：
+                {t('compat.missingFeatures')}
               </h3>
               <ul className="space-y-1">
                 {missingFeatures.map((feature, index) => (
@@ -137,27 +139,27 @@ export function UnsupportedVersionModal({
           {/* 升級指引 */}
           <div className="border-t border-[var(--surface-border)] pt-4">
             <h3 className="text-sm font-medium text-on-surface-secondary mb-2">
-              如何升級：
+              {t('compat.howToUpgrade')}
             </h3>
             {platform === 'ios' && (
               <div className="text-sm text-on-surface-secondary space-y-1">
-                <p>1. 開啟「設定」App</p>
-                <p>2. 點選「一般」</p>
-                <p>3. 點選「軟體更新」</p>
-                <p>4. 下載並安裝最新版本</p>
+                <p>{t('compat.iosStep1')}</p>
+                <p>{t('compat.iosStep2')}</p>
+                <p>{t('compat.iosStep3')}</p>
+                <p>{t('compat.stepInstall')}</p>
               </div>
             )}
             {platform === 'android' && (
               <div className="text-sm text-on-surface-secondary space-y-1">
-                <p>1. 開啟「設定」</p>
-                <p>2. 點選「系統」或「關於手機」</p>
-                <p>3. 點選「軟體更新」或「系統更新」</p>
-                <p>4. 下載並安裝最新版本</p>
+                <p>{t('compat.androidStep1')}</p>
+                <p>{t('compat.androidStep2')}</p>
+                <p>{t('compat.androidStep3')}</p>
+                <p>{t('compat.stepInstall')}</p>
               </div>
             )}
             {platform === 'web' && (
               <div className="text-sm text-on-surface-secondary">
-                <p>請使用最新版本的 Chrome、Safari 或 Firefox 瀏覽器。</p>
+                <p>{t('compat.webHint')}</p>
               </div>
             )}
           </div>
@@ -166,11 +168,12 @@ export function UnsupportedVersionModal({
           {platform !== 'web' && (
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong>建議升級至：</strong>{' '}
-                {platform === 'ios'
-                  ? `iOS ${RECOMMENDED_VERSIONS.ios}`
-                  : `Android ${RECOMMENDED_VERSIONS.android}`}{' '}
-                或更新版本以獲得最佳體驗。
+                <strong>{t('compat.recommendedLabel')}</strong>{' '}
+                {t('compat.recommendedBody', {
+                  version: platform === 'ios'
+                    ? `iOS ${RECOMMENDED_VERSIONS.ios}`
+                    : `Android ${RECOMMENDED_VERSIONS.android}`,
+                })}
               </p>
             </div>
           )}
@@ -184,14 +187,14 @@ export function UnsupportedVersionModal({
               onClick={handleDegradedMode}
               className="w-full py-3 px-4 bg-surface-elevated text-on-surface-secondary rounded-lg font-medium hover:bg-surface-elevated transition-colors"
             >
-              以有限功能繼續使用
+              {t('compat.continueLimited')}
             </button>
           )}
 
           {/* 主要說明 */}
           {!allowDegradedMode && (
             <p className="text-center text-sm text-on-surface-secondary">
-              請升級您的裝置後再使用 AegisTalk
+              {t('compat.upgradeFirst')}
             </p>
           )}
         </div>

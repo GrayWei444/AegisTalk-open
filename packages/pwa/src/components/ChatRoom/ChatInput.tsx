@@ -104,7 +104,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
 
     // 檢查檔案大小
     if (file.size > MAX_FILE_SIZE) {
-      alert(`File size cannot exceed ${Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB`);
+      alert(t('group.fileTooLarge', { size: `${Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB` }));
       return;
     }
 
@@ -132,11 +132,11 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
       onSendFile({ file });
     } catch (err) {
       console.error('[ChatInput] 發送檔案失敗:', err);
-      alert('File sending failed');
+      alert(t('chat.fileSendFailed'));
     } finally {
       setIsUploading(false);
     }
-  }, [onSendFile]);
+  }, [onSendFile, t]);
 
   // 處理從外部傳入的拖拉檔案
   useEffect(() => {
@@ -163,11 +163,11 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
       setPendingFile(null);
     } catch (err) {
       console.error('[ChatInput] 發送檔案失敗:', err);
-      alert('File sending failed');
+      alert(t('chat.fileSendFailed'));
     } finally {
       setIsUploading(false);
     }
-  }, [pendingFile, onSendFile]);
+  }, [pendingFile, onSendFile, t]);
 
   // 取消檔案預覽
   const handleCancelFile = useCallback(() => {
@@ -274,7 +274,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
               {pendingFile.isImage ? (
                 <img
                   src={pendingFile.dataUrl}
-                  alt="Preview"
+                  alt={t('chat.previewAlt')}
                   className="w-16 h-16 object-cover rounded-lg"
                 />
               ) : (
@@ -283,7 +283,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span className="text-xs text-on-surface-secondary mt-1 truncate max-w-[56px] px-1">
-                    {pendingFile.file.name.split('.').pop()?.toUpperCase() || 'FILE'}
+                    {pendingFile.file.name.split('.').pop()?.toUpperCase() || t('file.genericFile')}
                   </span>
                 </div>
               )}
@@ -291,7 +291,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
               <button
                 onClick={handleCancelFile}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
-                title="Cancel"
+                title={t('common.cancel')}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -302,7 +302,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
             {/* 說明文字輸入 */}
             <div className="min-w-0 flex-1 flex flex-col gap-1">
               <span className="text-xs text-on-surface-secondary truncate">
-                {pendingFile.isImage ? 'Add a note (optional)' : pendingFile.file.name}
+                {pendingFile.isImage ? t('chat.captionLabel') : pendingFile.file.name}
               </span>
               <input
                 ref={captionInputRef}
@@ -310,7 +310,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
                 value={pendingFile.caption}
                 onChange={(e) => handleCaptionChange(e.target.value)}
                 onKeyDown={handleCaptionKeyDown}
-                placeholder={pendingFile.isImage ? 'Enter description...' : 'e.g. Please analyze...'}
+                placeholder={pendingFile.isImage ? t('chat.captionPlaceholder') : t('chat.documentCaptionPlaceholder')}
                 className="w-full input-base rounded-lg px-3 py-2 text-sm"
               />
             </div>
@@ -320,7 +320,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
               onClick={handleSendFile}
               disabled={isUploading}
               className="flex-shrink-0 p-2.5 bg-accent hover:opacity-90 text-white rounded-full transition-all disabled:opacity-50"
-              title="Send"
+              title={t('common.send')}
             >
               {isUploading ? (
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -340,7 +340,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
       {/* 拖拉提示覆蓋層 */}
       {isDragOver && (
         <div className="absolute inset-0 flex items-center justify-center bg-accent-soft border-2 border-dashed border-accent rounded-lg z-10 pointer-events-none">
-          <span className="text-accent font-medium">Release to send file</span>
+          <span className="text-accent font-medium">{t('chat.dropToSendFile')}</span>
         </div>
       )}
 
@@ -373,7 +373,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
             className={`p-2 hover:bg-surface-tertiary rounded-full transition-all text-on-surface-secondary ${
               showMoreMenu ? 'rotate-45 bg-surface-tertiary' : ''
             }`}
-            title="More options"
+            title={t('chat.moreOptions')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -401,7 +401,7 @@ export function ChatInput({ onSend, onSendVoiceMessage, onSendFile, droppedFile,
                   className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-tertiary rounded-lg transition-colors text-left"
                 >
                   <PaperclipIcon size={18} className="shrink-0" />
-                  <span className="text-on-surface-primary text-sm">Send File</span>
+                  <span className="text-on-surface-primary text-sm">{t('group.sendFile')}</span>
                 </button>
 
                 {/* 轉帳（AegisPay Phase 0） */}

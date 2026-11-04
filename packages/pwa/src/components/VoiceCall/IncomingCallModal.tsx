@@ -12,6 +12,7 @@ import { devLog, devWarn } from '../../utils/devLog';
 
 import { useEffect, useRef, useCallback } from 'react';
 import { isNativeApp, isIOS } from '../../services/capacitor';
+import { useLanguage } from '../../i18n';
 
 interface IncomingCallModalProps {
   callerName: string;
@@ -131,6 +132,7 @@ export function IncomingCallModal({
   onReject,
   isVideoCall = false,
 }: IncomingCallModalProps) {
+  const { t } = useLanguage();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const stopVibrationRef = useRef<(() => void) | null>(null);
 
@@ -214,7 +216,7 @@ export function IncomingCallModal({
           <h2 className="text-xl font-semibold text-on-surface-primary mb-1">{callerName}</h2>
           <p className="text-on-surface-tertiary mb-8 flex items-center gap-2">
             <span className={`inline-block w-2 h-2 rounded-full animate-pulse ${isVideoCall ? 'bg-blue-500' : 'bg-green-500'}`} />
-            {isVideoCall ? 'Incoming video call...' : 'Incoming call...'}
+            {isVideoCall ? t('call.incomingVideoCall') : t('call.incomingCall')}
           </p>
 
           {/* 操作按鈕 */}

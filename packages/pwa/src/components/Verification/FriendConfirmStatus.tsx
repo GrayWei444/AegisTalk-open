@@ -42,7 +42,7 @@ export function FriendConfirmStatus({ phase, name, via, syncFailed }: FriendConf
         {text}
       </p>
       {syncFailed && (
-        <p className="text-xs text-on-surface-tertiary">雲端同步暫時失敗，稍後自動重試</p>
+        <p className="text-xs text-on-surface-tertiary">{t('friendConfirm.syncFailed')}</p>
       )}
     </div>
   );

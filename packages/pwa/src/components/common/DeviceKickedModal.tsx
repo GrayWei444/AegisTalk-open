@@ -8,10 +8,12 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useLanguage } from '../../i18n';
 
 const AUTO_RELOAD_SECONDS = 5;
 
 export function DeviceKickedModal() {
+  const { t } = useLanguage();
   const [show, setShow] = useState(false);
   const [countdown, setCountdown] = useState(AUTO_RELOAD_SECONDS);
 
@@ -27,8 +29,8 @@ export function DeviceKickedModal() {
       window.location.reload();
       return;
     }
-    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [show, countdown]);
 
   if (!show) return null;
@@ -50,8 +52,8 @@ export function DeviceKickedModal() {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">您已在新裝置登入</h2>
-              <p className="text-white/80 text-sm">此裝置已被自動登出</p>
+              <h2 className="text-xl font-bold">{t('deviceKicked.title')}</h2>
+              <p className="text-white/80 text-sm">{t('deviceKicked.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -59,15 +61,15 @@ export function DeviceKickedModal() {
         {/* 內容 */}
         <div className="px-6 py-5 space-y-4">
           <p className="text-on-surface-primary leading-relaxed">
-            為保障您的帳號安全，AegisTalk 同一帳號只允許一台裝置同時登入。
+            {t('deviceKicked.body1')}
           </p>
           <p className="text-on-surface-secondary text-sm leading-relaxed">
-            本機金鑰已被清除。如果您正在使用新裝置，可以忽略此訊息。
+            {t('deviceKicked.body2')}
             <br />
-            如果這不是您本人的操作，請立即聯繫我們並重新註冊。
+            {t('deviceKicked.body3')}
           </p>
           <p className="text-on-surface-tertiary text-xs">
-            {countdown} 秒後將自動返回登入畫面…
+            {t('deviceKicked.countdown', { seconds: countdown })}
           </p>
         </div>
 
@@ -77,7 +79,7 @@ export function DeviceKickedModal() {
             onClick={() => window.location.reload()}
             className="w-full py-3 px-4 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
           >
-            立即返回登入畫面
+            {t('deviceKicked.backNow')}
           </button>
         </div>
       </div>

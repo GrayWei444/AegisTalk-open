@@ -25,6 +25,7 @@ import { useChatStore } from '../stores/chatStore';
 import { useGroupStore } from '../stores/groupStore';
 import { getGroupEngine } from '../services/groupEngineHost';
 import { devLog, devWarn } from '../utils/devLog';
+import { tr } from '../i18n/tr';
 import { ext } from '@ext';
 
 // ============================================================================
@@ -147,7 +148,7 @@ export function useNewDeviceDisplay() {
         qrCode: null,
         qrData: null,
         transferData: null,
-        error: err instanceof Error ? err.message : '產生 QR Code 失敗',
+        error: err instanceof Error ? err.message : tr('deviceTransfer.qrGenerateFailed'),
         expiresAt: null,
       });
     }
@@ -219,7 +220,7 @@ export function useOldDeviceScanner(
     try {
       const qrData = parseTransferQR(qrString);
       if (!qrData) {
-        setState(prev => ({ ...prev, status: 'error', error: '無效的 QR Code 格式' }));
+        setState(prev => ({ ...prev, status: 'error', error: tr('deviceTransfer.invalidQrFormat') }));
         return false;
       }
 
@@ -229,7 +230,7 @@ export function useOldDeviceScanner(
         setState(prev => ({
           ...prev,
           status: 'error',
-          error: result.error || '驗證失敗',
+          error: result.error || tr('deviceTransfer.verifyFailed'),
         }));
         return false;
       }
@@ -249,7 +250,7 @@ export function useOldDeviceScanner(
       setState(prev => ({
         ...prev,
         status: 'error',
-        error: err instanceof Error ? err.message : '處理 QR Code 失敗',
+        error: err instanceof Error ? err.message : tr('deviceTransfer.processQrFailed'),
       }));
       return false;
     }
@@ -260,7 +261,7 @@ export function useOldDeviceScanner(
    */
   const confirmTransfer = useCallback(async (mode: TransferMode) => {
     if (!identity || !tempKeyRef.current || !state.targetTempId) {
-      setState(prev => ({ ...prev, status: 'error', error: '缺少必要資料' }));
+      setState(prev => ({ ...prev, status: 'error', error: tr('deviceTransfer.missingData') }));
       return;
     }
 
@@ -338,7 +339,7 @@ export function useOldDeviceScanner(
       setState(prev => ({
         ...prev,
         status: 'error',
-        error: err instanceof Error ? err.message : '傳輸失敗',
+        error: err instanceof Error ? err.message : tr('deviceTransfer.failed'),
       }));
     }
   }, [identity, signedPreKey, state.targetTempId, userProfile, friends, groups]);

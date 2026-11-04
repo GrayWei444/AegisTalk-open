@@ -22,6 +22,7 @@
 import { GROUP_CONSTANTS } from '../types';
 import { getIceServers } from './iceServers';
 import { devLog, devWarn } from '../utils/devLog';
+import { tr } from '../i18n/tr';
 import { useGroupStore } from '../stores/groupStore';
 import { isBlacklisted } from './localBlacklist';
 import { getGroupEngine } from './groupEngineHost';
@@ -180,12 +181,12 @@ class GroupCallService {
     }
 
     if (this.currentCall && this.currentCall.state !== GroupCallState.IDLE) {
-      throw new Error('Already in a group call');
+      throw new Error(tr('group.alreadyInCall'));
     }
 
     // 檢查通話人數限制（ADR-016: 語音/視訊 8 人硬上限）
     if (memberPublicKeys.length + 1 > GROUP_CONSTANTS.MAX_CALL_MEMBERS) {
-      throw new Error(`群組通話最多支援 ${GROUP_CONSTANTS.MAX_CALL_MEMBERS} 人`);
+      throw new Error(tr('group.callMaxMembers', { max: GROUP_CONSTANTS.MAX_CALL_MEMBERS }));
     }
 
     devLog(`[GroupCall] Starting ${withVideo ? 'video' : 'voice'} call in group ${groupId}`);
@@ -230,7 +231,7 @@ class GroupCallService {
     }
 
     if (this.currentCall && this.currentCall.state !== GroupCallState.IDLE) {
-      throw new Error('Already in a group call');
+      throw new Error(tr('group.alreadyInCall'));
     }
 
     devLog(`[GroupCall] Joining call in group ${groupId}`);

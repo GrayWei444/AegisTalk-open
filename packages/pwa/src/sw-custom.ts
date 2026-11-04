@@ -10,7 +10,8 @@ import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import { pushDisplayFor, type PushDisplay } from './services/pushDisplay';
+import { pushDisplayFor, type PushDisplay, type PushStrings } from './services/pushDisplay';
+import { loadPushStrings } from './services/pushStrings';
 import { decideRing } from './services/ringDirectory';
 
 declare let self: ServiceWorkerGlobalScope;
@@ -255,9 +256,9 @@ function generateLongVibrationPattern(): number[] {
  * 顯示推播通知（開源第 4 步審查 M4）：只用 pushDisplayFor 決定的固定文字 ——
  * 推播裡的名字、標題、內文、圖示網址一律不採用（推播沒有寄件人簽章，推得動的人能塞任何東西）。
  * 來電的樣子（接聽／拒接、長震動、不會自己消失）只給 display.ring：來電者簽的響鈴 token 驗過（開源第 5d 步，decideRing）；
- * 驗不過的來電推播是一則一般通知（點了開 App；滑掉不算拒接）
+ * 驗不過的來電推播是一則一般通知（點了開 App；滑掉不算拒接）。文字是 App 的語言（loadPushStrings，App 寫進 Cache API 的翻譯）
  */
-async function showPushNotification(display: PushDisplay): Promise<void> {
+async function showPushNotification(display: PushDisplay, s: PushStrings): Promise<void> {
   if (display.kind === 'incoming_call' && display.ring) {
     const callOptions: ExtendedNotificationOptions = {
       body: display.body,
@@ -274,11 +275,11 @@ async function showPushNotification(display: PushDisplay): Promise<void> {
       actions: [
         {
           action: 'accept',
-          title: display.isVideoCall ? '📹 接聽' : '📞 接聽',
+          title: `${display.isVideoCall ? '📹' : '📞'} ${s.accept}`,
         },
         {
           action: 'reject',
-          title: '❌ 拒接',
+          title: `❌ ${s.reject}`,
         },
       ],
     };
@@ -309,7 +310,8 @@ async function showPushNotification(display: PushDisplay): Promise<void> {
 async function showLocalCallNotification(payload: unknown): Promise<void> {
   const p = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
   const name = typeof p.callerName === 'string' ? p.callerName.trim().slice(0, 64) : '';
-  await showPushNotification(pushDisplayFor({ type: 'incoming_call' }, Date.now(), { name, video: p.isVideoCall === true }));
+  const s = await loadPushStrings();
+  await showPushNotification(pushDisplayFor({ type: 'incoming_call' }, Date.now(), { name, video: p.isVideoCall === true }, s), s);
 }
 
 // 監聽 Push 事件（從伺服器推送）：內容解析不了也照樣顯示一則固定的通知（userVisibleOnly）
@@ -321,7 +323,7 @@ self.addEventListener('push', (event: PushEvent) => {
     console.error('[SW] Failed to parse push data:', e);
   }
   // 來電：只有來電者簽的響鈴 token 驗過才是來電的樣子、才有名字（本機存的；開源第 5d 步，services/ringDirectory.ts）
-  event.waitUntil(decideRing(data, Date.now()).then((ring) => showPushNotification(pushDisplayFor(data, Date.now(), ring))));
+  event.waitUntil(Promise.all([decideRing(data, Date.now()), loadPushStrings()]).then(([ring, s]) => showPushNotification(pushDisplayFor(data, Date.now(), ring, s), s)));
 });
 
 // 監聽通知點擊事件

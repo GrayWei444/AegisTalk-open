@@ -17,6 +17,7 @@ import { devLog, devWarn } from '../utils/devLog';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { FileOpener } from '@capawesome-team/capacitor-file-opener';
+import { tr } from '../i18n/tr';
 
 // ============================================
 // sender-supplied filename → filesystem path 防注入（抄 AegisTrans C-3 2026-05-07）
@@ -229,7 +230,7 @@ export async function openWithSystemApp(options: FileOpenOptions): Promise<FileO
  */
 export async function shareFile(options: FileOpenOptions): Promise<FileOpenResult> {
   if (isNativeApp()) {
-    return saveAndShareNative({ ...options }, '分享至');
+    return saveAndShareNative({ ...options }, tr('file.shareTo'));
   }
   // Web Share API（手機瀏覽器有效）
   const navAny = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean; share?: (data: { files: File[] }) => Promise<void> };
@@ -313,16 +314,16 @@ export function isExecutableFile(filename: string): boolean {
  * 取得檔案類型描述
  */
 function getFileTypeDescription(mimeType: string): string {
-  if (mimeType.startsWith('image/')) return '圖片檔案';
-  if (mimeType.startsWith('video/')) return '影片檔案';
-  if (mimeType.startsWith('audio/')) return '音訊檔案';
-  if (mimeType === 'application/pdf') return 'PDF 文件';
-  if (mimeType.includes('word') || mimeType.includes('document')) return 'Word 文件';
-  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'Excel 試算表';
-  if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return 'PowerPoint 簡報';
-  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z')) return '壓縮檔案';
-  if (mimeType.startsWith('text/')) return '文字檔案';
-  return '檔案';
+  if (mimeType.startsWith('image/')) return tr('file.imageFile');
+  if (mimeType.startsWith('video/')) return tr('file.videoFile');
+  if (mimeType.startsWith('audio/')) return tr('file.audioFile');
+  if (mimeType === 'application/pdf') return tr('file.pdfDocument');
+  if (mimeType.includes('word') || mimeType.includes('document')) return tr('file.wordDocument');
+  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return tr('file.excelSpreadsheet');
+  if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return tr('file.powerpointPresentation');
+  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z')) return tr('file.archiveFile');
+  if (mimeType.startsWith('text/')) return tr('file.textFile');
+  return tr('file.genericFile');
 }
 
 /**
@@ -417,7 +418,7 @@ async function openWithSystemAppNative(options: FileOpenOptions): Promise<FileOp
     console.error(`[FileOpener] openWithSystemApp failed: ${e?.message || String(e)}`);
     if (e?.message?.includes('No app') || e?.message?.includes('UNAVAILABLE')) {
       console.error('[FileOpener] no app handles mime, falling back to share');
-      return saveAndShareNative(options, '開啟方式');
+      return saveAndShareNative(options, tr('file.openWith'));
     }
     return { success: false, error: e?.message || '無法開啟檔案' };
   }
@@ -442,7 +443,7 @@ async function saveNativeOnly(options: FileOpenOptions): Promise<FileOpenResult>
 /**
  * Native「分享/開啟 fallback」：寫 Documents → Share sheet。使用者取消不算錯（檔已存）。
  */
-async function saveAndShareNative(options: FileOpenOptions, dialogTitle: string = '開啟或分享'): Promise<FileOpenResult> {
+async function saveAndShareNative(options: FileOpenOptions, dialogTitle: string = tr('file.openOrShare')): Promise<FileOpenResult> {
   const { name, dataUrl } = options;
   try {
     const uri = await writeFileChunked(dataUrl, sanitizeFileName(name), Directory.Documents);

@@ -5,6 +5,8 @@
  * 顯示上傳圖片、守護群組盾牌圖示、或預設群組 SVG。
  */
 
+import { useLanguage } from '../../i18n';
+
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
 interface GroupAvatarProps {
@@ -35,13 +37,14 @@ function isImageAvatar(avatar?: string): boolean {
 }
 
 export function GroupAvatar({ avatar, name, isGuardian = false, size = 'md', className = '' }: GroupAvatarProps) {
+  const { t } = useLanguage();
   const { container, icon } = SIZE_MAP[size];
 
   if (isImageAvatar(avatar)) {
     return (
       <img
         src={avatar}
-        alt={name || 'Group'}
+        alt={name || t('group.groupAvatar')}
         className={`${container} rounded-full object-cover ${className}`}
       />
     );

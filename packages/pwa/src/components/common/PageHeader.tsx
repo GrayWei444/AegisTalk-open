@@ -7,6 +7,7 @@
 
 import { ReactNode } from 'react';
 import { useConfig } from '../../config/ConfigProvider';
+import { useLanguage } from '../../i18n';
 
 interface PageHeaderProps {
   /** 標題文字 */
@@ -37,6 +38,7 @@ export function PageHeader({
   backIcon,
 }: PageHeaderProps) {
   const { environment } = useConfig();
+  const { t } = useLanguage();
   const uiConfig = environment.ui;
 
   // 根據配置決定是否加入 safe-area-top
@@ -53,7 +55,7 @@ export function PageHeader({
         <button
           onClick={onBack}
           className="p-2 hover:bg-surface-tertiary rounded-full transition-colors"
-          aria-label="返回"
+          aria-label={t('common.back')}
         >
           {backIcon || (
             <span className="text-on-surface-secondary">←</span>

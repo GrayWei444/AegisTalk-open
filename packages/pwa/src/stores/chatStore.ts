@@ -5,6 +5,7 @@ import * as db from '../services/database';
 import { broadcastProfileUpdate } from '../services/directSignal';
 import { generateId } from '../utils/secureId';
 import { devLog, devWarn } from '../utils/devLog';
+import { tr } from '../i18n/tr';
 import { backup } from '@ext/backup';
 
 /** 好友／名字變動 → 帳號備份要重寫（官方版 AegisID 雲端 blob；社群版目前沒有備份） */
@@ -456,7 +457,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const friend: Friend = existing
       ? { ...existing, name: name || existing.name, trustLevel, signedPreKey: preKeyBundle.signedPreKey, signature: preKeyBundle.signature, addedAt: now }
       : {
-          id: `friend-${publicKey.slice(0, 16)}`, publicKey, name: name || `好友 ${publicKey.slice(0, 8)}...`,
+          id: `friend-${publicKey.slice(0, 16)}`, publicKey, name: name || tr('friendList.defaultFriendPrefix', { key: publicKey.slice(0, 8) }),
           avatar: '', lastMessage: '', lastMessageTime: now, unreadCount: 0, online: true,
           trustLevel, addedAt: now, signedPreKey: preKeyBundle.signedPreKey, signature: preKeyBundle.signature,
         };
@@ -519,7 +520,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const newFriend: Friend = {
       id: friendId,
       publicKey,
-      name: name || `好友 ${publicKey.slice(0, 8)}...`,
+      name: name || tr('friendList.defaultFriendPrefix', { key: publicKey.slice(0, 8) }),
       avatar: avatar || '',
       lastMessage: '',
       lastMessageTime: Date.now(),
@@ -540,7 +541,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // 加完好友後，立即發送自己的個人資料給對方（封給他的身分金鑰，DIRECT_SEALED kind profile）
     const myProfile = get().userProfile;
     broadcastProfileUpdate([publicKey], {
-      displayName: myProfile.displayName || '好友',
+      displayName: myProfile.displayName || tr('chatApp.defaultFriendName'),
       avatar: myProfile.avatar || '',
     });
 

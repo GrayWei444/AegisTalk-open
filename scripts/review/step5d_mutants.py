@@ -66,12 +66,12 @@ MUTANTS = [
   ('decideRing: operator offset not capped', S+'ringDirectory.ts', [("    now: deviceNow + clampRingOffset(dir.offsetMs),", "    now: deviceNow + dir.offsetMs,")], [RT]),
   ('decideRing: any push type rings', S+'ringDirectory.ts', [("  if (d.type !== 'incoming_call' || typeof d.ringToken !== 'string') return null;", "  if (typeof d.ringToken !== 'string') return null;")], [RT]),
   ('display: unverified call push shown as a call', S+'pushDisplay.ts', [
-     ("    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: '可能有人打給你，打開 AegisTalk 看看' };",
-      "    return { kind, ring: true, isVideoCall: false, tag: 'incoming-call', title: '📞 來電', body: '打開 AegisTalk 接聽' };")], [DISPLAY]),
+     ("    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: s.callHint };",
+      "    return { kind, ring: true, isVideoCall: false, tag: 'incoming-call', title: `📞 ${s.callTitle}`, body: s.openToAnswer };")], [DISPLAY]),
   ('service worker: call style for any call push', 'packages/pwa/src/sw-custom.ts', [("  if (display.kind === 'incoming_call' && display.ring) {", "  if (display.kind === 'incoming_call') {")], [DISPLAY]),
   ('service worker: ring not decided from the token', 'packages/pwa/src/sw-custom.ts', [
-     ("  event.waitUntil(decideRing(data, Date.now()).then((ring) => showPushNotification(pushDisplayFor(data, Date.now(), ring))));",
-      "  event.waitUntil(showPushNotification(pushDisplayFor(data, Date.now(), { name: '', video: false })));")], [DISPLAY, RT]),
+     ("  event.waitUntil(Promise.all([decideRing(data, Date.now()), loadPushStrings()]).then(([ring, s]) => showPushNotification(pushDisplayFor(data, Date.now(), ring, s), s)));",
+      "  event.waitUntil(loadPushStrings().then((s) => showPushNotification(pushDisplayFor(data, Date.now(), { name: '', video: false }, s), s)));")], [DISPLAY, RT]),
   ('display: unverified call push shares the verified call\'s tag', S+'pushDisplay.ts', [("tag: 'call-hint', title: 'AegisTalk'", "tag: 'incoming-call', title: 'AegisTalk'")], [DISPLAY]),
   ('service worker: a swipe on an unverified call rejects the real call', 'packages/pwa/src/sw-custom.ts', [
      ("      type: display.kind === 'incoming_call' ? 'message' : display.kind,", "      type: display.kind,")], [DISPLAY]),

@@ -13,6 +13,7 @@ import {
 } from '../services/groupCallService';
 import { useCrypto } from './useCrypto';
 import { useGroupStore } from '../stores/groupStore';
+import { tr } from '../i18n/tr';
 
 // ============================================
 // 類型定義
@@ -135,7 +136,7 @@ export function useGroupCall(): UseGroupCallReturn {
   const startCall = useCallback(async (groupId: string, withVideo: boolean = false) => {
     const group = getGroupById(groupId);
     if (!group) {
-      throw new Error('群組不存在');
+      throw new Error(tr('group.callGroupNotFound'));
     }
 
     const memberKeys = group.members
@@ -154,7 +155,7 @@ export function useGroupCall(): UseGroupCallReturn {
   const joinCall = useCallback(async (groupId?: string, withVideo: boolean = false) => {
     const targetGroupId = groupId || incomingCall?.groupId;
     if (!targetGroupId) {
-      throw new Error('請指定群組 ID');
+      throw new Error(tr('group.callNoGroup'));
     }
 
     await groupCallService.joinGroupCall(targetGroupId, withVideo);
@@ -192,7 +193,7 @@ export function useGroupCall(): UseGroupCallReturn {
   // 接受來電
   const acceptIncomingCall = useCallback(async (withVideo: boolean = false) => {
     if (!incomingCall) {
-      throw new Error('沒有來電');
+      throw new Error(tr('group.noIncomingCall'));
     }
     await joinCall(incomingCall.groupId, withVideo || incomingCall.isVideoCall);
   }, [incomingCall, joinCall]);

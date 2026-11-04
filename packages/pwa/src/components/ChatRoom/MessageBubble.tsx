@@ -11,6 +11,7 @@ import { ext } from '@ext';
 import { TrashIcon, CopyIcon, ForwardIcon, ShareIcon, FlameIcon, FileTypeIcon, DownloadIcon, ShieldIcon } from '../common/icons';
 import { openFile } from '../../services/fileOpener';
 import { getBlob } from '../../services/fileBlobStore';
+import { useLanguage } from '../../i18n';
 
 // L2 風險警告已移至 ScamAlertModal 彈窗顯示
 
@@ -48,6 +49,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar, senderName, riskLevel, onVoiceRiskDetected, onForward, onCancelPayment, onActivateAegisPay }: MessageBubbleProps) {
+  const { t } = useLanguage();
   const privacyModeEnabled = usePrivacyMode();
   const PaymentCard = ext.ui.PaymentCard;
   // 如果隱私模式關閉，預設顯示訊息；如果開啟，需要點擊才顯示
@@ -386,7 +388,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
               />
             ) : (
               <div className="rounded-xl flex items-center justify-center text-xs text-white/70" style={{ width: 200, height: 150 }}>
-                Downloading...
+                {t('file.downloading')}
               </div>
             )}
             {/* 說明文字（如果有） */}
@@ -460,7 +462,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                   }}
                   disabled={!fileDisplayUrl}
                   className={`shrink-0 p-1.5 rounded-lg transition-colors disabled:opacity-40 ${isMine ? 'text-white/80 hover:bg-white/15' : 'text-on-surface-tertiary hover:bg-black/10'}`}
-                  title="下載到本機"
+                  title={t('file.saveToDevice')}
                 >
                   <DownloadIcon size={18} />
                 </button>
@@ -513,7 +515,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                 `}
               >
                 <div className="w-full h-full flex items-center justify-center text-on-surface-secondary text-sm min-h-[60px]">
-                  {isImage ? 'Click to view image' : 'Click to view'}
+                  {isImage ? t('chat.tapToViewImage') : t('chat.tapToView')}
                 </div>
               </div>
             )}
@@ -522,7 +524,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
             {isImage ? (
               <img
                 src={message.content}
-                alt="Image message"
+                alt={t('chat.imageMessageAlt')}
                 className={`rounded-xl max-w-full transition-opacity duration-200 ${isRevealed || !privacyModeEnabled ? 'opacity-100' : 'opacity-0'}`}
                 style={{ maxHeight: '300px' }}
               />
@@ -574,14 +576,14 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
         {showRiskDetail && riskBorderClass && message.riskResult && (
           <div className="mt-1 px-3 py-2 bg-surface-tertiary rounded-lg text-xs text-on-surface-secondary max-w-[75%] animate-fade-in">
             <ShieldIcon size={12} className="inline-block mr-1 align-[-1px]" />
-            {message.riskResult.warnings?.[0] || 'Potential risk detected'}
+            {message.riskResult.warnings?.[0] || t('risk.riskDetected')}
           </div>
         )}
 
         {/* Message info row */}
         <div className={`flex items-center gap-2 mt-1 text-xs text-on-surface-tertiary ${isMine ? 'justify-end' : 'justify-start'}`}>
           <span>{formatTime(message.timestamp)}</span>
-          {isMine && message.isRead && <span>Read</span>}
+          {isMine && message.isRead && <span>{t('chat.read')}</span>}
 
           {/* Delete button for sent messages - always deletes for both sides */}
           {isMine && (
@@ -596,7 +598,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                 }
               }}
               className="hover:text-red-400 transition-colors p-1"
-              title="Delete Message"
+              title={t('group.deleteMessage')}
             >
               <TrashIcon size={14} />
             </button>
@@ -607,7 +609,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
             <button
               onClick={handleBurnClick}
               className="hover:text-red-400 transition-colors p-1"
-              title="Destroy Message"
+              title={t('chat.destroyMessage')}
             >
               <TrashIcon size={14} />
             </button>
@@ -632,7 +634,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                   className="w-full px-4 py-2.5 text-left text-on-surface-primary hover:bg-surface-tertiary flex items-center gap-3"
                 >
                   <CopyIcon size={18} />
-                  <span>Copy</span>
+                  <span>{t('common.copy')}</span>
                 </button>
               )}
 
@@ -643,7 +645,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                   className="w-full px-4 py-2.5 text-left text-on-surface-primary hover:bg-surface-tertiary flex items-center gap-3"
                 >
                   <ForwardIcon size={18} />
-                  <span>Forward</span>
+                  <span>{t('common.forward')}</span>
                 </button>
               )}
 
@@ -654,7 +656,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                   className="w-full px-4 py-2.5 text-left text-on-surface-primary hover:bg-surface-tertiary flex items-center gap-3"
                 >
                   <ShareIcon size={18} />
-                  <span>分享</span>
+                  <span>{t('common.share')}</span>
                 </button>
               )}
 
@@ -672,7 +674,7 @@ export function MessageBubble({ message, onBurn, onDeleteRemotely, senderAvatar,
                 className="w-full px-4 py-2.5 text-left text-red-500 hover:bg-surface-tertiary flex items-center gap-3"
               >
                 <TrashIcon size={18} />
-                <span>刪除</span>
+                <span>{t('common.delete')}</span>
               </button>
             </div>
           </div>

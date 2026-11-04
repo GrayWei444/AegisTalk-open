@@ -9,6 +9,7 @@
  *   - 來電：只有響鈴 token 驗過（ring，services/ringDirectory.decideRing：好友簽的、寄給我、夠新鮮、這一通沒響過）才是來電的樣子
  *     （接聽／拒接、一直震動、不會自己消失），名字是本機存的那個好友的名字、視訊與否看 token；驗不過 → 一則不帶名字的一般通知
  *   - 其他型別：固定文字
+ * 文字是 App 的語言（PushStrings：頁面用翻譯表寫進 Cache API，service worker 讀，services/pushStrings.ts）；沒有就用下面的預設（繁中）。
  * 純函式：不碰 service worker 的 API，可以測、可以移植到群星。
  */
 
@@ -34,8 +35,52 @@ export interface VerifiedRing {
 const KINDS: readonly PushDisplayKind[] = ['incoming_call', 'message', 'guardian_alert', 'check_in'];
 const MAX_NAME = 64;
 
+/** 通知的固定文字（App 的語言）；callBody／videoCallBody 裡的 {name} 換成本機存的名字 */
+export interface PushStrings {
+  callTitle: string;
+  videoCallTitle: string;
+  callBody: string;
+  videoCallBody: string;
+  openToAnswer: string;
+  callHint: string;
+  guardian: string;
+  checkIn: string;
+  message: string;
+  accept: string;
+  reject: string;
+}
+
+/** App 的預設語言（繁中）：還沒寫過翻譯（App 還沒開過）時用 */
+export const DEFAULT_PUSH_STRINGS: PushStrings = {
+  callTitle: '來電',
+  videoCallTitle: '視訊來電',
+  callBody: '{name} 正在呼叫你',
+  videoCallBody: '{name} 正在發起視訊通話',
+  openToAnswer: '打開 AegisTalk 接聽',
+  callHint: '可能有人打給你，打開 AegisTalk 看看',
+  guardian: '你有新的守護通知',
+  checkIn: '你有新的報平安通知',
+  message: '你有新訊息',
+  accept: '接聽',
+  reject: '拒接',
+};
+const MAX_TEXT = 200;
+
+/** 讀回來的文字表（Cache API）：每一格都要是 1～200 字的字串，否則整份不用（→ 預設） */
+export function cleanPushStrings(x: unknown): PushStrings | null {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
+  const d = x as Record<string, unknown>;
+  const out = {} as Record<keyof PushStrings, string>;
+  for (const k of Object.keys(DEFAULT_PUSH_STRINGS) as (keyof PushStrings)[]) {
+    const v = d[k];
+    if (typeof v !== 'string' || !v.trim() || v.length > MAX_TEXT) return null;
+    out[k] = v;
+  }
+  return out;
+}
+
 /** 推播的 JSON（解析失敗、不是物件 → 當成一般訊息）；ring：這則來電的響鈴 token 驗過了（沒驗過 → null） */
-export function pushDisplayFor(data: unknown, now: number, ring: VerifiedRing | null = null): PushDisplay {
+export function pushDisplayFor(data: unknown, now: number, ring: VerifiedRing | null = null, s: PushStrings = DEFAULT_PUSH_STRINGS): PushDisplay {
   const d = data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
   const kind: PushDisplayKind = (KINDS as readonly unknown[]).includes(d.type) ? (d.type as PushDisplayKind) : 'message';
   if (kind === 'incoming_call') {
@@ -44,18 +89,18 @@ export function pushDisplayFor(data: unknown, now: number, ring: VerifiedRing | 
       const name = typeof ring.name === 'string' ? ring.name.trim().slice(0, MAX_NAME) : '';
       return {
         kind, ring: true, isVideoCall, tag: 'incoming-call',
-        title: isVideoCall ? '📹 視訊來電' : '📞 來電',
-        body: name ? (isVideoCall ? `${name} 正在發起視訊通話` : `${name} 正在呼叫你`) : '打開 AegisTalk 接聽',
+        title: isVideoCall ? `📹 ${s.videoCallTitle}` : `📞 ${s.callTitle}`,
+        body: name ? (isVideoCall ? s.videoCallBody : s.callBody).replace('{name}', () => name) : s.openToAnswer,
       };
     }
     // 驗不過（偽造、陌生人、封鎖、重放、太舊、沒有 token）：不是來電的樣子、不帶名字；自己的 tag（不會蓋掉一則驗過的來電，審查 L3）
-    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: '可能有人打給你，打開 AegisTalk 看看' };
+    return { kind, ring: false, isVideoCall: false, tag: 'call-hint', title: 'AegisTalk', body: s.callHint };
   }
   if (kind === 'guardian_alert') {
-    return { kind, ring: false, isVideoCall: false, tag: `guardian-${now}`, title: 'AegisTalk', body: '你有新的守護通知' };
+    return { kind, ring: false, isVideoCall: false, tag: `guardian-${now}`, title: 'AegisTalk', body: s.guardian };
   }
   if (kind === 'check_in') {
-    return { kind, ring: false, isVideoCall: false, tag: `check-in-${now}`, title: 'AegisTalk', body: '你有新的報平安通知' };
+    return { kind, ring: false, isVideoCall: false, tag: `check-in-${now}`, title: 'AegisTalk', body: s.checkIn };
   }
-  return { kind: 'message', ring: false, isVideoCall: false, tag: `msg-${now}`, title: 'AegisTalk', body: '你有新訊息' };
+  return { kind: 'message', ring: false, isVideoCall: false, tag: `msg-${now}`, title: 'AegisTalk', body: s.message };
 }

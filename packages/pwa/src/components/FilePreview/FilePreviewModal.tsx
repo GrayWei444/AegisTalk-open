@@ -176,7 +176,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                 <button onClick={() => setTextScale((v) => Math.min(1.5, +(v + 0.125).toFixed(3)))}
                   className="px-2 py-1.5 bg-surface-elevated text-white text-sm rounded" title="A+">A+</button>
                 <button onClick={() => setTextScale(0.875)}
-                  className="px-2 py-1.5 bg-surface-elevated text-white text-sm rounded" title="reset">↺</button>
+                  className="px-2 py-1.5 bg-surface-elevated text-white text-sm rounded" title={t('file.resetZoom')}>↺</button>
               </>
             )}
             {isNativeApp() && (

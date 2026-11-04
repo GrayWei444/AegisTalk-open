@@ -275,7 +275,7 @@ const signRaw = (text, signer = friend, prefix = P) =>
   assert.match(trig, /if \(detail === 'invalid_ring_token'\) await postSigned\(url, build\(false\), this\.signedClock\(\)\);/,
     'a token the server finds stale (my clock far off) → the push goes again without a token (the callee gets a plain notification)');
   const sw = src(SRC + '/sw-custom.ts');
-  assert.match(sw, /event\.waitUntil\(decideRing\(data, Date\.now\(\)\)\.then\(\(ring\) => showPushNotification\(pushDisplayFor\(data, Date\.now\(\), ring\)\)\)\);/,
+  assert.match(sw, /event\.waitUntil\(Promise\.all\(\[decideRing\(data, Date\.now\(\)\), loadPushStrings\(\)\]\)\.then\(\(\[ring, s\]\) => showPushNotification\(pushDisplayFor\(data, Date\.now\(\), ring, s\), s\)\)\);/,
     'the service worker decides ring / name with decideRing');
   const fcm = src(ANDROID + '/src/main/kotlin/com/aegisrd/talk/AegisFCMService.kt');
   const call = fcm.slice(fcm.indexOf('private fun showIncomingCallNotification('), fcm.indexOf('private fun showUnverifiedCallNotification('));

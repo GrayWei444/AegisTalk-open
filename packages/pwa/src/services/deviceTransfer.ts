@@ -18,6 +18,7 @@ import { mqttService, MessageType } from './mqtt';
 import { toBuffer } from '../utils/toBuffer';
 import type { GroupBackup } from './groupBackup';
 import { devLog, devWarn } from '../utils/devLog';
+import { tr } from '../i18n/tr';
 
 // Transfer payload — friend / group projections used during 1-1 device transfer
 interface TransferFriend {
@@ -171,16 +172,16 @@ export function verifyNewDeviceQR(qrData: DeviceTransferQR): {
 } {
   try {
     if (qrData.type !== 'device_transfer') {
-      return { valid: false, error: '無效的 QR Code 類型' };
+      return { valid: false, error: tr('deviceTransfer.invalidQrType') };
     }
 
     if (Date.now() > qrData.expiresAt) {
-      return { valid: false, error: 'QR Code 已過期' };
+      return { valid: false, error: tr('deviceTransfer.expired') };
     }
 
     // tempId 只會是伺服器發的 transfer_…（URL-safe），其他寫法會讓舊裝置往奇怪的主題發
     if (!qrData.tempKey || !qrData.tempId || !/^transfer_[A-Za-z0-9_-]{16,64}$/.test(qrData.tempId)) {
-      return { valid: false, error: 'QR Code 格式不正確' };
+      return { valid: false, error: tr('deviceTransfer.malformedQr') };
     }
 
     const tempKey = fromBase64(qrData.tempKey);
@@ -191,7 +192,7 @@ export function verifyNewDeviceQR(qrData: DeviceTransferQR): {
     };
   } catch (err) {
     devWarn('[DeviceTransfer] QR verification error:', err);
-    return { valid: false, error: '驗證發生錯誤' };
+    return { valid: false, error: tr('deviceTransfer.verifyError') };
   }
 }
 
@@ -343,14 +344,14 @@ export class NewDeviceDisplay {
           this.onComplete?.(transferData);
         } catch (err) {
           devWarn('[NewDeviceDisplay] Receive error:', err);
-          this.onError?.('接收或解密資料時發生錯誤');
+          this.onError?.(tr('deviceTransfer.receiveError'));
         }
       }
     );
 
     // 120s 超時（等待 A 機驗證可能較久）
     this.timeoutId = setTimeout(() => {
-      this.onError?.('等待連接超時');
+      this.onError?.(tr('deviceTransfer.waitTimeout'));
       this.cleanup();
     }, TRANSFER_TIMEOUT * 2);
   }
@@ -426,7 +427,7 @@ export class OldDeviceScanner {
       this.onComplete?.();
     } catch (err) {
       devWarn('[OldDeviceScanner] Send error:', err);
-      this.onError?.('傳輸資料時發生錯誤');
+      this.onError?.(tr('deviceTransfer.sendError'));
     }
   }
 }

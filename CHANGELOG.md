@@ -1,9 +1,25 @@
 # Changelog
 
-## Unreleased
+## 1.0.1 — 2026-11-04
 
 - **Friend list:** the time of the last message ("just now", "5 min ago", "3 hr ago", "2 d ago") is shown in the app's
   language; it was always Chinese ("剛剛", "5 分鐘前"), also with the app in English, Japanese or Korean.
+- **The whole app in one language:** about 210 texts that bypassed the translations now follow the app's language
+  (Traditional and Simplified Chinese, English, Japanese, Korean). Chinese in every language: the add-friend scan tab and
+  its "加入好友" button, my verification QR code, forwarding and sharing, the PDF viewer, voice messages, the call screen
+  ("撥號中…", "AI 防護中"), the message menu's Share and Delete, the "signed in on a new device" and "system too old"
+  notices, device-transfer errors, incoming-call notifications. English in the Chinese, Japanese and Korean app: "Read",
+  "More options", "Send File", "Add a note (optional)", "Enter description...", "Incoming call...", the add-friend
+  progress and error messages, the profile picture alerts, the crash screen.
+- **First start in the phone's language:** until you pick a language in Settings, the community app now starts in the
+  phone's or browser's language (English, Japanese, Korean, Traditional or Simplified Chinese; Traditional Chinese for
+  any other). The first screen, the server choice, comes before Settings, so an English phone saw it in Chinese.
+- **Web Push notifications** (browser / PWA) are in the app's language too: the app stores the notification texts where the
+  service worker can read them (Cache API); until it has, they are Traditional Chinese as before. Nothing from the push
+  itself is shown, as before.
+- `scripts/review/ui_strings_i18n_self_test.mjs`: fails when hard-coded Chinese, Japanese or Korean text is back in the
+  community edition's screens.
+- Android: `versionName` 1.0.1, `versionCode` 2. Signed with the same key as 1.0.0, so it installs over it.
 
 ## 1.0.0 — 2026-11-03
 

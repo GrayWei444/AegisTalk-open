@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { CallState } from '../../services/voiceCall';
 import { devWarn } from '../../utils/devLog';
 import { PhoneIcon, PhoneOffIcon, VideoIcon, SmartphoneIcon } from '../common/icons';
+import { useLanguage } from '../../i18n';
 
 interface ActiveCallUIProps {
   peerName: string;
@@ -40,16 +41,16 @@ function formatDuration(seconds: number): string {
 /**
  * 取得狀態文字
  */
-function getStateText(state: CallState): string {
+function getStateText(state: CallState, t: (key: string) => string): string {
   switch (state) {
     case CallState.REQUESTING:
-      return '撥號中...';
+      return t('call.dialing');
     case CallState.CONNECTING:
-      return '連線中...';
+      return t('group.connecting');
     case CallState.CONNECTED:
-      return '通話中';
+      return t('call.inCall');
     case CallState.ENDED:
-      return '通話結束';
+      return t('call.ended');
     default:
       return '';
   }
@@ -71,6 +72,7 @@ export function ActiveCallUI({
   localStream,
   remoteStream,
 }: ActiveCallUIProps) {
+  const { t } = useLanguage();
   const isConnected = callState === CallState.CONNECTED;
   const isEnded = callState === CallState.ENDED;
   const isDialing = callState === CallState.REQUESTING || callState === CallState.CONNECTING;
@@ -176,7 +178,7 @@ export function ActiveCallUI({
             />
           ) : (
             <div className="w-full h-full bg-surface-tertiary flex items-center justify-center">
-              <span className="text-white/50 text-sm">鏡頭已關</span>
+              <span className="text-white/50 text-sm">{t('call.cameraOff')}</span>
             </div>
           )}
         </div>
@@ -195,7 +197,7 @@ export function ActiveCallUI({
           <div className="absolute top-14 left-4 flex items-center gap-2 px-3 py-1.5 bg-aegis-500/30 rounded-full backdrop-blur">
             <div className="w-2 h-2 rounded-full bg-aegis-400 animate-pulse" />
             <span className="text-xs text-aegis-400">
-              AI 防護中 {sliceCount > 0 && `(${sliceCount})`}
+              {t('call.aiProtecting')} {sliceCount > 0 && `(${sliceCount})`}
             </span>
           </div>
         )}
@@ -316,8 +318,8 @@ export function ActiveCallUI({
         <p className="text-on-surface-tertiary text-lg flex items-center gap-2">
           {isDialing && <span className="inline-block w-2 h-2 rounded-full bg-mist-500 animate-pulse" />}
           {isConnected && <span className="inline-block w-2 h-2 rounded-full bg-green-500" />}
-          {isConnected ? formatDuration(duration) : getStateText(callState)}
-          {isVideoCall && isDialing && <span className="text-sm text-mist-400 ml-2">視訊通話</span>}
+          {isConnected ? formatDuration(duration) : getStateText(callState, t)}
+          {isVideoCall && isDialing && <span className="text-sm text-mist-400 ml-2">{t('group.videoCall')}</span>}
         </p>
       </div>
 
@@ -350,7 +352,7 @@ export function ActiveCallUI({
             <div className="flex items-center gap-2 px-3 py-1.5 bg-aegis-500/20 rounded-full">
               <div className="w-2 h-2 rounded-full bg-aegis-400 animate-pulse" />
               <span className="text-xs text-aegis-400">
-                AI 防護中 {sliceCount > 0 && `(${sliceCount})`}
+                {t('call.aiProtecting')} {sliceCount > 0 && `(${sliceCount})`}
               </span>
             </div>
           )}

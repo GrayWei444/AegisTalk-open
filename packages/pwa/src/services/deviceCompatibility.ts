@@ -7,6 +7,7 @@
 
 import { Capacitor } from '@capacitor/core';
 import { Device } from '@capacitor/device';
+import { tr } from '../i18n/tr';
 
 // ============================================
 // 類型定義
@@ -214,10 +215,10 @@ export async function checkCompatibility(): Promise<CompatibilityResult> {
     const missingFeatures: string[] = [];
 
     if (osVersionNumber < 14.5) {
-      missingFeatures.push('AudioWorklet (語音分析)');
+      missingFeatures.push(`AudioWorklet (${tr('compat.voiceAnalysis')})`);
     }
     if (osVersionNumber < 17.0) {
-      missingFeatures.push('sherpa-onnx 語音辨識');
+      missingFeatures.push(`sherpa-onnx ${tr('compat.speechRecognition')}`);
     }
 
     return {

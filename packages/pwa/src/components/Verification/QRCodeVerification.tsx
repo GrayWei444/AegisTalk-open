@@ -48,7 +48,7 @@ export function QRCodeVerification({
   // 產生 QR Code (X3DH 格式)：每張一個新 nonce，5 分鐘內誰掃都認；舊的那張只認到它自己的 5 分鐘（＋寬限）
   const generateQR = useCallback(async () => {
     if (!publicKey || !signedPreKey) {
-      setError('身份或金鑰未初始化');
+      setError(t('friendCode.keysNotReady'));
       return;
     }
     if (generatingRef.current) return;   // 到期那一秒可能 tick 不只一次，只產一張
@@ -64,7 +64,7 @@ export function QRCodeVerification({
         pk: publicKey,
         spk: signedPreKey.publicKeyBase64,
         sig: signedPreKey.signatureBase64,
-        name: displayName || `用戶 ${publicKey.slice(0, 6)}`,
+        name: displayName || t('addFriend.unnamedUser', { id: publicKey.slice(0, 6) }),
         ts: invite.issuedAt,
         exp: invite.expiresAt,
         n: invite.nonce,
@@ -86,14 +86,14 @@ export function QRCodeVerification({
       setQr({ image: qrCodeDataUrl, expiresAt: invite.expiresAt });
       setNow(Date.now());
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '產生 QR Code 失敗';
+      const errorMsg = err instanceof Error ? err.message : t('friendCode.generateFailed');
       setError(errorMsg);
       onError?.(errorMsg);
     } finally {
       generatingRef.current = false;
       setIsGeneratingQR(false);
     }
-  }, [publicKey, signedPreKey, displayName, onError]);
+  }, [publicKey, signedPreKey, displayName, onError, t]);
 
   // 打開畫面（含關掉再開）就產生新的一張；失敗就停在錯誤畫面等使用者按重試，不無限重試
   useEffect(() => {
@@ -138,7 +138,7 @@ export function QRCodeVerification({
     return (
       <div className="flex flex-col items-center gap-4 p-6">
         <div className="w-12 h-12 border-4 border-mist-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-on-surface-secondary">產生驗證 QR Code...</p>
+        <p className="text-on-surface-secondary">{t('friendCode.qrGenerating')}</p>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export function QRCodeVerification({
           onClick={handleRefresh}
           className="px-4 py-2 bg-mist-500 hover:bg-mist-600 text-white rounded-lg transition-colors"
         >
-          重試
+          {t('common.retry')}
         </button>
       </div>
     );
@@ -167,14 +167,14 @@ export function QRCodeVerification({
     <div className="flex flex-col items-center gap-6 p-6">
       {/* 標題 */}
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-on-surface-primary">我的驗證 QR Code</h3>
-        <p className="text-sm text-on-surface-tertiary mt-1">讓好友掃描來驗證您的身份</p>
+        <h3 className="text-lg font-semibold text-on-surface-primary">{t('friendCode.myQrTitle')}</h3>
+        <p className="text-sm text-on-surface-tertiary mt-1">{t('friendCode.myQrHint')}</p>
       </div>
 
       {/* QR Code（到期會自動換新的一張，沒有「過期」畫面） */}
       <div className="p-4 bg-white rounded-2xl shadow-lg">
         {showQr && qr ? (
-          <img src={qr.image} alt="Verification QR Code" className="w-[280px] h-[280px]" />
+          <img src={qr.image} alt={t('friendCode.qrAlt')} className="w-[280px] h-[280px]" />
         ) : (
           <div className="w-[280px] h-[280px] bg-surface-elevated animate-pulse rounded-lg" />
         )}
@@ -183,7 +183,7 @@ export function QRCodeVerification({
       {/* 公鑰縮寫顯示 */}
       {publicKey && (
         <div className="text-center">
-          <p className="text-sm text-on-surface-tertiary mb-2">我的 ID</p>
+          <p className="text-sm text-on-surface-tertiary mb-2">{t('friendCode.myId')}</p>
           <code className="px-4 py-2 bg-surface-tertiary rounded-lg text-sm font-mono text-mist-400">
             {publicKey.slice(0, 12)}...{publicKey.slice(-8)}
           </code>
@@ -211,7 +211,7 @@ export function QRCodeVerification({
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        重新產生
+        {t('friendCode.regenerate')}
       </button>
     </div>
   );

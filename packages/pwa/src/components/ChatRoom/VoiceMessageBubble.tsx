@@ -13,6 +13,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { voiceMessageService, formatDuration } from '../../services/voiceMessage';
 import { ext } from '@ext';
 import type { RiskResult } from '../../types';
+import { useLanguage } from '../../i18n';
 
 interface VoiceMessageBubbleProps {
   /** Base64 編碼的音訊數據 */
@@ -43,6 +44,7 @@ export function VoiceMessageBubble({
   transcript: initialTranscript,
   onRiskDetected,
 }: VoiceMessageBubbleProps) {
+  const { t } = useLanguage();
   const [playState, setPlayState] = useState<PlayState>('idle');
   const [currentTime, setCurrentTime] = useState(0);
   const [showTranscript, setShowTranscript] = useState(false);
@@ -343,7 +345,7 @@ export function VoiceMessageBubble({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            {showTranscript ? '隱藏' : '文字'}
+            {showTranscript ? t('voiceMessage.hideText') : t('voiceMessage.showText')}
           </button>
 
           {showTranscript && (
@@ -360,7 +362,7 @@ export function VoiceMessageBubble({
       return (
         <div className="flex items-center gap-1 text-xs text-on-surface-tertiary">
           <div className="w-2 h-2 border border-gray-400 border-t-transparent rounded-full animate-spin" />
-          <span>辨識中...</span>
+          <span>{t('voiceMessage.transcribing')}</span>
         </div>
       );
     }
@@ -369,7 +371,7 @@ export function VoiceMessageBubble({
     if (transcribeState === 'error') {
       return (
         <div className="text-xs text-red-400">
-          辨識失敗
+          {t('voiceMessage.transcribeFailed')}
         </div>
       );
     }
@@ -377,7 +379,7 @@ export function VoiceMessageBubble({
     // 尚未開始（提示點擊播放）
     return (
       <div className="text-xs text-on-surface-tertiary">
-        點擊播放以辨識文字
+        {t('voiceMessage.tapToTranscribe')}
       </div>
     );
   };
@@ -426,9 +428,9 @@ export function VoiceMessageBubble({
         <div className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400">
           <ShieldIcon size={12} className="shrink-0" />
           <span>
-            {voiceRiskLevel === 'critical' ? '極高風險語音' :
-             voiceRiskLevel === 'high' ? '高風險語音' :
-             '可疑語音內容'}
+            {voiceRiskLevel === 'critical' ? t('voiceMessage.riskCritical') :
+             voiceRiskLevel === 'high' ? t('voiceMessage.riskHigh') :
+             t('voiceMessage.riskSuspicious')}
           </span>
         </div>
       )}

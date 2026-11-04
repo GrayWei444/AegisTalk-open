@@ -132,11 +132,11 @@ export function AddFriendModal({
     const live = () => addAttemptRef.current === attempt;
 
     try {
-      setStatusMessage('Performing key exchange...');
+      setStatusMessage(t('addFriend.keyExchange'));
 
       // 連接 MQTT (如果尚未連接)
       if (mqttService.getState() !== ConnectionState.CONNECTED) {
-        setStatusMessage('Connecting to server...');
+        setStatusMessage(t('addFriend.connectingServer'));
         await mqttService.connect(publicKey);
       }
 
@@ -181,7 +181,7 @@ export function AddFriendModal({
       usePendingFriendStore.getState().markPending(publicKey, peerData.pk, invite.kind, ephemeralB64);
       // 封給對方的身分金鑰；我的名字也在裡面（以前是 INIT 明文的 senderName，broker 看得到）
       const via = await makeVia(invite, publicKey, ephemeralB64, peerData.pk, friendViaSealer,
-        userProfile.displayName || `User ${publicKey.slice(0, 6)}`);
+        userProfile.displayName || t('addFriend.unnamedUser', { id: publicKey.slice(0, 6) }));
       const initPayload: X3DHInitPayload = {
         ephemeralPublicKey: ephemeralB64,
         signedPreKey: signedPreKey?.publicKeyBase64,
@@ -218,17 +218,17 @@ export function AddFriendModal({
         trustLevel,
       });
       if (!live()) return;
-      const errorMsg = err instanceof Error ? err.message : 'Failed to add friend';
+      const errorMsg = err instanceof Error ? err.message : t('addFriend.addFailed');
       setScanError(errorMsg);
       setScanStatus('error');
       setStatusMessage(errorMsg);
     }
-  }, [publicKey, createSession, reAddFriend, userProfile]);
+  }, [publicKey, createSession, reAddFriend, userProfile, t]);
 
   // 處理掃描到的 QR Code
   const handleQrScanned = useCallback(async (qrText: string) => {
     if (!publicKey) {
-      setScanError('Identity not initialized');
+      setScanError(t('friendCode.keysNotReady'));
       setScanStatus('error');
       return;
     }
@@ -238,29 +238,29 @@ export function AddFriendModal({
 
     try {
       setScanStatus('connecting');
-      setStatusMessage('Parsing QR Code...');
+      setStatusMessage(t('addFriend.parsingQr'));
 
       const peerQr: QRCodeData = JSON.parse(qrText);
 
       if (!peerQr.pk || !peerQr.spk || !peerQr.sig) {
-        throw new Error('Invalid QR Code format');
+        throw new Error(t('addFriend.invalidQr'));
       }
 
       // 只收這個 App「我的 QR」畫面畫的那種：v2、有時間、有 nonce。沒有 nonce 的（v1 等）對方一定拒收，
       // 不送出去讓人以為加成功（App 還沒上線，沒有舊版 QR 要相容）
       const invite = qrInvite(peerQr);
       if (!(peerQr.v >= 2) || !peerQr.exp || !peerQr.ts || !invite) {
-        throw new Error('Unsupported QR Code, please scan the QR on their Add Friend screen');
+        throw new Error(t('addFriend.unsupportedQr'));
       }
       if (qrScanExpired(peerQr.exp)) {   // 一張 5 分鐘；容兩支手機的時鐘差一點
-        throw new Error('QR Code expired, please scan the new one on their screen');
+        throw new Error(t('addFriend.qrExpired'));
       }
       devLog('[AddFriendModal] QR Code 時間驗證通過，剩餘', Math.round((peerQr.exp - Date.now()) / 1000), '秒');
 
-      setStatusMessage(`Friend found: ${peerQr.name}`);
+      setStatusMessage(t('addFriend.friendFound', { name: peerQr.name }));
 
       // Phase 12: 查詢對方的風險分數
-      setStatusMessage('Checking account security...');
+      setStatusMessage(t('addFriend.checkingSecurity'));
       const riskInfo = await ext.antiFraud.contactRisk(peerQr.pk);
       if (!live()) return;   // 查的時候又掃了一張、或彈窗關了：這次不加
 
@@ -273,7 +273,7 @@ export function AddFriendModal({
           pendingQrData: peerQr,
         });
         setScanStatus('warning');
-        setStatusMessage('Risk warning detected');
+        setStatusMessage(t('addFriend.riskWarning'));
         return;
       }
 
@@ -282,12 +282,12 @@ export function AddFriendModal({
 
     } catch (err) {
       if (!live()) return;
-      const errorMsg = err instanceof Error ? err.message : 'Scan failed';
+      const errorMsg = err instanceof Error ? err.message : t('addFriend.scanFailed');
       setScanError(errorMsg);
       setScanStatus('error');
       setStatusMessage(errorMsg);
     }
-  }, [publicKey, proceedAddFriend]);
+  }, [publicKey, proceedAddFriend, t]);
 
   // Phase 12: 確認加好友（忽略風險警告）
   const handleConfirmAddFriend = useCallback(async () => {
@@ -300,7 +300,7 @@ export function AddFriendModal({
     const { exp } = riskWarning.pendingQrData;
     const invite = qrInvite(riskWarning.pendingQrData);
     if (!invite || !exp || qrScanExpired(exp)) {
-      const msg = 'QR Code expired, please scan the new one on their screen';
+      const msg = t('addFriend.qrExpired');
       setScanError(msg);
       setScanStatus('error');
       setStatusMessage(msg);
@@ -308,7 +308,7 @@ export function AddFriendModal({
     }
     setScanStatus('connecting');
     await proceedAddFriend(riskWarning.pendingQrData, 'verified', invite, attempt);
-  }, [riskWarning.pendingQrData, proceedAddFriend]);
+  }, [riskWarning.pendingQrData, proceedAddFriend, t]);
 
   // Phase 12: 取消加好友
   const handleCancelAddFriend = useCallback(() => {
@@ -320,20 +320,20 @@ export function AddFriendModal({
   // 處理好友碼貼上
   const handleFriendCodeSubmit = useCallback(async () => {
     if (!publicKey) {
-      setFriendCodeError('Identity not initialized');
+      setFriendCodeError(t('friendCode.keysNotReady'));
       return;
     }
 
     const code = friendCodeInput.trim();
     if (!code) {
-      setFriendCodeError('Please enter friend code');
+      setFriendCodeError(t('addFriend.enterCode'));
       return;
     }
 
     // 只收 ATK-XXXXXX 短碼。舊的 aegis: 長碼拿掉了：App 早就不再產生，碼主人那邊也沒有記錄可對，
     //   送出去一定被拒收（App 還沒上線，沒有已分享出去的舊碼要相容）
     if (!isShortCode(code)) {
-      setFriendCodeError('Invalid format. Use ATK-XXXXXX');
+      setFriendCodeError(t('addFriend.invalidCodeFormat'));
       return;
     }
 
@@ -348,13 +348,13 @@ export function AddFriendModal({
       const friendData: FriendCodeData | null = await lookupShortCode(code);
       if (!live()) return;   // 查的時候又送了一次、或彈窗關了：這次不加
       if (!friendData) {
-        throw new Error('Short code not found or expired');
+        throw new Error(t('addFriend.codeNotFound'));
       }
       devLog('[AddFriendModal] Short code lookup success:', friendData.name);
 
       // 檢查是否是自己
       if (friendData.pk === publicKey) {
-        throw new Error('Cannot add yourself as friend');
+        throw new Error(t('addFriend.cannotAddSelf'));
       }
 
       // Phase 12: 查詢對方的風險分數
@@ -377,7 +377,7 @@ export function AddFriendModal({
       // 被限速（429）時說「太多次，稍後再試」，不是「找不到」—— 以前使用者以為碼錯了一直重打
       const errorMsg = err instanceof ShortCodeRateLimitedError
         ? t('friendCode.lookupRateLimited')
-        : err instanceof Error ? err.message : 'Failed to add friend';
+        : err instanceof Error ? err.message : t('addFriend.addFailed');
       setFriendCodeError(errorMsg);
     } finally {
       if (live()) setFriendCodeProcessing(false);   // 關掉彈窗的那個 effect 也會清
@@ -388,7 +388,7 @@ export function AddFriendModal({
   const startScanning = useCallback(async () => {
     setScanError('');
     setScanStatus('scanning');
-    setStatusMessage('Aim at friend\'s QR Code');
+    setStatusMessage(t('addFriend.scanHint'));
 
     // iOS 原生掃描：AVFoundation 連續自動對焦(near) + 全畫面解碼，根治 WKWebView 對焦/小框死結。
     //   開原生全螢幕掃描器；web(PWA)/Android-web 走下方 html5-qrcode fallback。
@@ -403,7 +403,7 @@ export function AddFriendModal({
           setStatusMessage('');
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'camera error';
+        const msg = err instanceof Error ? err.message : t('deviceTransfer.cameraError');
         console.error('[Scanner] native scan failed:', err);
         setScanError(msg);
         setScanStatus('error');
@@ -453,14 +453,14 @@ export function AddFriendModal({
 
       setIsScanning(true);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Cannot open camera';
+      const errorMsg = err instanceof Error ? err.message : t('deviceTransfer.cameraError');
       console.error('[Scanner] Failed to start camera:', err);
       setScanError(errorMsg);
       setScanStatus('error');
       setStatusMessage(errorMsg);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleQrScanned]);
+  }, [handleQrScanned, t]);
 
   // 停止掃描
   const stopScanning = useCallback(async () => {
@@ -630,8 +630,8 @@ export function AddFriendModal({
           {activeTab === 'scan' && (
             <div className="flex flex-col items-center gap-4 p-6">
               <div className="text-center mb-2">
-                <h3 className="text-lg font-semibold text-on-surface-primary">掃描好友 QR Code</h3>
-                <p className="text-sm text-on-surface-secondary mt-1">對準好友手機上的 QR Code</p>
+                <h3 className="text-lg font-semibold text-on-surface-primary">{t('addFriend.scanTitle')}</h3>
+                <p className="text-sm text-on-surface-secondary mt-1">{t('addFriend.scanHint')}</p>
               </div>
 
               {/* 掃描區域 */}
@@ -650,7 +650,7 @@ export function AddFriendModal({
                           <path d="M17 21h3a1 1 0 001-1v-3" />
                           <line x1="3" y1="12" x2="21" y2="12" strokeWidth={1} opacity={0.5} />
                         </svg>
-                        <p className="text-on-surface-secondary text-sm">點擊下方按鈕開啟相機</p>
+                        <p className="text-on-surface-secondary text-sm">{t('addFriend.openCameraHint')}</p>
                       </>
                     )}
                     {scanStatus === 'connecting' && (
@@ -678,7 +678,7 @@ export function AddFriendModal({
                         <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                           <AlertTriangleIcon size={30} className="text-orange-400" />
                         </div>
-                        <h4 className="text-lg font-semibold text-orange-400 mb-2">風險警告</h4>
+                        <h4 className="text-lg font-semibold text-orange-400 mb-2">{t('addFriend.riskWarning')}</h4>
                         <p className="text-sm text-on-surface-secondary mb-3">
                           {getWarningMessage(riskWarning.riskInfo)}
                         </p>
@@ -687,7 +687,7 @@ export function AddFriendModal({
                             {getRiskLevelName(riskWarning.riskInfo.riskLevel)}
                           </span>
                           <span className="px-2 py-1 rounded text-xs bg-surface-tertiary text-on-surface-secondary">
-                            分數: {riskWarning.riskInfo.riskScore}
+                            {t('addFriend.riskScore', { score: riskWarning.riskInfo.riskScore })}
                           </span>
                         </div>
                         <div className="flex gap-3 justify-center">
@@ -695,13 +695,13 @@ export function AddFriendModal({
                             onClick={handleCancelAddFriend}
                             className="px-4 py-2 bg-surface-tertiary hover:opacity-80 text-on-surface-primary rounded-lg text-sm transition-colors"
                           >
-                            取消
+                            {t('common.cancel')}
                           </button>
                           <button
                             onClick={handleConfirmAddFriend}
                             className="px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm transition-colors"
                           >
-                            仍然加入
+                            {t('addFriend.addAnyway')}
                           </button>
                         </div>
                       </div>
@@ -714,7 +714,7 @@ export function AddFriendModal({
               {!cryptoReady ? (
                 <div className="text-center text-on-surface-secondary">
                   <div className="w-8 h-8 border-2 border-on-surface-tertiary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                  <p className="text-sm">正在初始化加密模組...</p>
+                  <p className="text-sm">{t('auth.initCryptoModule')}</p>
                 </div>
               ) : scanStatus === 'idle' || scanStatus === 'error' ? (
                 <button
@@ -795,14 +795,14 @@ export function AddFriendModal({
                     {friendCodeProcessing ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        處理中...
+                        {t('common.processing')}
                       </>
                     ) : (
                       <>
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
-                        加入好友
+                        {t('friendList.addFriend')}
                       </>
                     )}
                   </button>
@@ -818,7 +818,7 @@ export function AddFriendModal({
               {/* 分隔線 */}
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-[var(--surface-border)]" />
-                <span className="text-sm text-on-surface-tertiary">或</span>
+                <span className="text-sm text-on-surface-tertiary">{t('common.or')}</span>
                 <div className="flex-1 h-px bg-[var(--surface-border)]" />
               </div>
 

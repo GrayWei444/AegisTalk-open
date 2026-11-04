@@ -220,7 +220,7 @@ await check('scanner: exp checked with the same grace (clock skew)', async () =>
       // 信任分數查詢（開源第 5a 步起經 ext.antiFraud.contactRisk）：跟以前一樣查到空的紀錄
       ext: { antiFraud: { contactRisk: async () => ({}) } }, shouldShowWarning: () => false,
       proceedAddFriend: async (...a) => { r.sent.push(a); }, qrScanExpired: (e) => fi.qrScanExpired(e), addAttemptRef: { current: 0 }, setAwaiting() {},
-      qrInvite: (q) => (q.n ? { kind: 'qr', token: q.n } : undefined),
+      qrInvite: (q) => (q.n ? { kind: 'qr', token: q.n } : undefined), t: (k) => k,
     });
     await handleQrScanned(JSON.stringify(qr));
     return r;
@@ -242,7 +242,7 @@ await check('scanner: after a long risk warning an expired QR is not sent', asyn
       useCallback: (fn) => fn, riskWarning: { show: true, riskInfo: {}, pendingQrData: qr },
       setRiskWarning() {}, setScanStatus: (s) => { r.status = s; }, setScanError: (m) => { r.error = m; }, setStatusMessage() {},
       proceedAddFriend: async (...a) => { r.sent.push(a); }, qrScanExpired: (e) => fi.qrScanExpired(e), Date: FakeDate, addAttemptRef: { current: 0 }, setAwaiting() {},
-      qrInvite: (q) => (q.n ? { kind: 'qr', token: q.n } : undefined),
+      qrInvite: (q) => (q.n ? { kind: 'qr', token: q.n } : undefined), t: (k) => k,
     });
     await handleConfirmAddFriend();
     return r;

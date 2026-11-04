@@ -52,6 +52,11 @@ export interface TranslationKeys {
     previousStep: string;
     nextStep: string;
     later: string;
+    send: string;
+    share: string;
+    forward: string;
+    open: string;
+    or: string;
   };
   nav: {
     wallet: string;
@@ -394,6 +399,11 @@ export interface TranslationKeys {
     deleteMessage: string;
     notSent: string;
     retrySend: string;
+    alreadyInCall: string;
+    callMaxMembers: string;
+    callGroupNotFound: string;
+    callNoGroup: string;
+    noIncomingCall: string;
   };
   guardian: {
     title: string;
@@ -555,6 +565,11 @@ export interface TranslationKeys {
     /** 「我的 QR」倒數：{time} 後換新的一張（5 分鐘一張） */
     qrRefreshesIn: string;
     qrRefreshHint: string;
+    qrGenerating: string;
+    myQrTitle: string;
+    myQrHint: string;
+    myId: string;
+    qrAlt: string;
   };
   /** 加好友送出之後，等對方確認（程式碼審查 M1）。對方收下 X3DH_INIT 會回 PROFILE_UPDATE，收到才算加上 */
   friendConfirm: {
@@ -570,6 +585,7 @@ export interface TranslationKeys {
     badge: string;
     /** 聊天室橫幅：取消（＝刪掉這個好友） */
     cancel: string;
+    syncFailed: string;
   };
   risk: {
     safe: string;
@@ -622,6 +638,12 @@ export interface TranslationKeys {
     callJoinFailed: string;
     turnRelay: string;
     ipv6Direct: string;
+    dialing: string;
+    inCall: string;
+    ended: string;
+    cameraOff: string;
+    aiProtecting: string;
+    isVideoCallingYou: string;
   };
   chat: {
     sentPhoto: string;
@@ -656,6 +678,17 @@ export interface TranslationKeys {
     highRiskConversationDetected: string;
     suspiciousLinkInHighRisk: string;
     suspiciousLinkDetected: string;
+    fileSendFailed: string;
+    previewAlt: string;
+    captionLabel: string;
+    captionPlaceholder: string;
+    documentCaptionPlaceholder: string;
+    moreOptions: string;
+    tapToViewImage: string;
+    tapToView: string;
+    imageMessageAlt: string;
+    read: string;
+    destroyMessage: string;
   };
   push: {
     permissionRequestFailed: string;
@@ -663,6 +696,10 @@ export interface TranslationKeys {
     subscribeFailed: string;
     subscribeFailedCheckPermission: string;
     unsubscribeFailed: string;
+    openToAnswer: string;
+    callHint: string;
+    guardianNotification: string;
+    checkInNotification: string;
   };
   guardianAlertService: {
     highRiskConversation: string;
@@ -888,6 +925,18 @@ export interface TranslationKeys {
     cameraPermissionDenied: string;
     cameraNotFound: string;
     cameraError: string;
+    qrAlt: string;
+    invalidQrFormat: string;
+    invalidQrType: string;
+    malformedQr: string;
+    verifyFailed: string;
+    verifyError: string;
+    processQrFailed: string;
+    missingData: string;
+    qrGenerateFailed: string;
+    receiveError: string;
+    waitTimeout: string;
+    sendError: string;
   };
   chatExport: {
     title: string;
@@ -951,6 +1000,24 @@ export interface TranslationKeys {
     savedToDocuments: string;
     executableWarning: string;
     textTruncated: string;
+    saveToDevice: string;
+    prevPage: string;
+    nextPage: string;
+    zoomOut: string;
+    zoomIn: string;
+    resetZoom: string;
+    pdfLoadFailed: string;
+    pdfHint: string;
+    downloadsTitle: string;
+    downloadsActive: string;
+    downloadsHistory: string;
+    noActiveDownloads: string;
+    noDownloadHistory: string;
+    clearDownloadHistory: string;
+    downloadFailed: string;
+    shareTo: string;
+    openWith: string;
+    openOrShare: string;
   };
   aegisGuard: {
     overview: string;
@@ -1073,6 +1140,10 @@ export interface TranslationKeys {
     persistentErrorHint: string;
     firstTimeHint: string;
     defaultFriendName: string;
+    cryptoInitFailed: string;
+    cryptoInitAbnormal: string;
+    crashTitle: string;
+    noStackTrace: string;
   };
   groups: {
     enterGroupName: string;
@@ -1155,5 +1226,82 @@ export interface TranslationKeys {
     linkUnverifiedBody: string;
     groupCallUnverifiedBody: string;
     dismiss: string;
+  };
+  voiceMessage: {
+    hideText: string;
+    showText: string;
+    transcribing: string;
+    transcribeFailed: string;
+    tapToTranscribe: string;
+    riskCritical: string;
+    riskHigh: string;
+    riskSuspicious: string;
+    tapToSend: string;
+    recordHint: string;
+  };
+  forward: {
+    title: string;
+    sending: string;
+    sent: string;
+    encrypting: string;
+    searchPlaceholder: string;
+    friendsTab: string;
+    groupsTab: string;
+    noMatches: string;
+    textMessage: string;
+  };
+  addFriend: {
+    scanTitle: string;
+    scanHint: string;
+    openCameraHint: string;
+    riskWarning: string;
+    riskScore: string;
+    addAnyway: string;
+    keyExchange: string;
+    connectingServer: string;
+    parsingQr: string;
+    friendFound: string;
+    checkingSecurity: string;
+    addFailed: string;
+    invalidQr: string;
+    unsupportedQr: string;
+    qrExpired: string;
+    scanFailed: string;
+    enterCode: string;
+    invalidCodeFormat: string;
+    codeNotFound: string;
+    cannotAddSelf: string;
+    unnamedUser: string;
+  };
+  deviceKicked: {
+    title: string;
+    subtitle: string;
+    body1: string;
+    body2: string;
+    body3: string;
+    countdown: string;
+    backNow: string;
+  };
+  compat: {
+    title: string;
+    subtitle: string;
+    yourVersion: string;
+    minimum: string;
+    missingFeatures: string;
+    howToUpgrade: string;
+    iosStep1: string;
+    iosStep2: string;
+    iosStep3: string;
+    stepInstall: string;
+    androidStep1: string;
+    androidStep2: string;
+    androidStep3: string;
+    webHint: string;
+    recommendedLabel: string;
+    recommendedBody: string;
+    continueLimited: string;
+    upgradeFirst: string;
+    voiceAnalysis: string;
+    speechRecognition: string;
   };
 }

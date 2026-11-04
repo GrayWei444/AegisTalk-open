@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { openFile } from '../../services/fileOpener';
+import { useLanguage } from '../../i18n';
 
 // 設定 PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -23,11 +24,12 @@ interface PDFViewerProps {
 }
 
 export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
+  const { t } = useLanguage();
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -41,7 +43,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
     const loadPdf = async () => {
       try {
         setLoading(true);
-        setError(null);
+        setError(false);
 
         const loadingTask = pdfjsLib.getDocument(src);
         const pdf = await loadingTask.promise;
@@ -54,7 +56,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
       } catch (err) {
         if (cancelled) return;
         console.error('[PDFViewer] 載入 PDF 失敗:', err);
-        setError('無法載入 PDF 檔案');
+        setError(true);
         setLoading(false);
       }
     };
@@ -168,7 +170,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             </svg>
           </span>
           <span className="text-white text-sm truncate">
-            {fileName || 'PDF 檔案'}
+            {fileName || t('file.pdfDocument')}
           </span>
         </div>
 
@@ -178,7 +180,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             onClick={goToPrevPage}
             disabled={currentPage <= 1}
             className="p-2 text-white disabled:text-dark-400 hover:bg-dark-600 rounded transition-colors"
-            title="上一頁"
+            title={t('file.prevPage')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -193,7 +195,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             onClick={goToNextPage}
             disabled={currentPage >= numPages}
             className="p-2 text-white disabled:text-dark-400 hover:bg-dark-600 rounded transition-colors"
-            title="下一頁"
+            title={t('file.nextPage')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -207,7 +209,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             onClick={zoomOut}
             disabled={scale <= 0.5}
             className="p-2 text-white disabled:text-dark-400 hover:bg-dark-600 rounded transition-colors"
-            title="縮小"
+            title={t('file.zoomOut')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -217,7 +219,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
           <button
             onClick={resetZoom}
             className="px-1 sm:px-2 py-1 text-white text-sm hover:bg-dark-600 rounded transition-colors min-w-[44px] sm:min-w-[50px]"
-            title="重置縮放"
+            title={t('file.resetZoom')}
           >
             {Math.round(scale * 100)}%
           </button>
@@ -226,7 +228,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             onClick={zoomIn}
             disabled={scale >= 3}
             className="p-2 text-white disabled:text-dark-400 hover:bg-dark-600 rounded transition-colors"
-            title="放大"
+            title={t('file.zoomIn')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -239,7 +241,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             onClick={handleDownload}
             disabled={downloading}
             className="p-2 text-white disabled:text-dark-400 hover:bg-dark-600 rounded transition-colors"
-            title="下載"
+            title={t('file.download')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
@@ -249,7 +251,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
           <button
             onClick={onClose}
             className="p-2 text-white hover:bg-dark-600 rounded transition-colors"
-            title="關閉"
+            title={t('common.close')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -266,7 +268,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
         {loading && (
           <div className="flex flex-col items-center justify-center h-full text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-mist-500 border-t-transparent mb-4" />
-            <span>載入中...</span>
+            <span>{t('common.loading')}</span>
           </div>
         )}
 
@@ -275,7 +277,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
             <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span>{error}</span>
+            <span>{t('file.pdfLoadFailed')}</span>
           </div>
         )}
 
@@ -290,7 +292,7 @@ export function PDFViewer({ src, fileName, onClose }: PDFViewerProps) {
       {/* 底部提示 */}
       <div className="px-4 py-2 bg-dark-800 border-t border-dark-border text-center">
         <span className="text-dark-400 text-xs">
-          上方箭頭翻頁 | 上方 ＋ / － 縮放
+          {t('file.pdfHint')}
         </span>
       </div>
     </div>

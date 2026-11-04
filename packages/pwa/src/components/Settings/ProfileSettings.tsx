@@ -126,13 +126,13 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
 
     // 驗證檔案類型
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      alert(t('settings.selectImageFile'));
       return;
     }
 
     // 驗證檔案大小（最大 5MB）
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image file too large. Please select an image under 5MB');
+      alert(t('settings.imageTooLargeMax'));
       return;
     }
 
@@ -142,7 +142,7 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
       setSelectedAvatar(compressedImage);
     } catch (error) {
       console.error('Failed to process image:', error);
-      alert('Image processing failed. Please try again');
+      alert(t('settings.imageProcessFailedRetry'));
     } finally {
       setIsUploading(false);
     }

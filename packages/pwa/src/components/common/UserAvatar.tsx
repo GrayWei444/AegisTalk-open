@@ -6,6 +6,7 @@
  */
 
 import type { RiskLevel } from '../../types';
+import { useLanguage } from '../../i18n';
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
@@ -47,6 +48,7 @@ const RISK_RING: Record<RiskLevel, string> = {
 
 
 export function UserAvatar({ avatar, name, size = 'md', className = '', riskLevel }: UserAvatarProps) {
+  const { t } = useLanguage();
   const { container } = SIZE_MAP[size];
   const ring = riskLevel ? RISK_RING[riskLevel] : '';
 
@@ -54,7 +56,7 @@ export function UserAvatar({ avatar, name, size = 'md', className = '', riskLeve
     return (
       <img
         src={avatar}
-        alt={name || 'Avatar'}
+        alt={name || t('settings.avatar')}
         className={`${container} rounded-full object-cover ${ring} ${className}`}
       />
     );

@@ -11,6 +11,7 @@ import {
   type ShareTargetData,
 } from '../services/fileShare';
 import { ForwardModal } from '../components/FileShare/ForwardModal';
+import { useLanguage } from '../i18n';
 
 interface ShareTargetPageProps {
   /** 返回主頁面 */
@@ -27,8 +28,10 @@ function cleanupShareCache(): void {
 }
 
 export function ShareTargetPage({ onBack, onComplete }: ShareTargetPageProps) {
+  const { t } = useLanguage();
   const [shareData, setShareData] = useState<ShareTargetData | null>(null);
   const [loading, setLoading] = useState(true);
+  /** 錯誤訊息的翻譯 key */
   const [error, setError] = useState<string | null>(null);
 
   // 處理 Share Target 資料
@@ -83,12 +86,12 @@ export function ShareTargetPage({ onBack, onComplete }: ShareTargetPageProps) {
           return;
         }
 
-        setError('沒有收到分享的內容');
+        setError('share.noShareContent');
         setLoading(false);
         cleanupShareCache();
       } catch (err) {
         console.error('[ShareTargetPage] Process failed:', err);
-        setError('處理分享內容時發生錯誤');
+        setError('share.processShareError');
         setLoading(false);
         cleanupShareCache();
       }
@@ -108,7 +111,7 @@ export function ShareTargetPage({ onBack, onComplete }: ShareTargetPageProps) {
       <div className="min-h-[100dvh] bg-surface-primary flex items-center justify-center safe-area-top">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-mist-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-on-surface-secondary">正在處理分享內容...</p>
+          <p className="text-on-surface-secondary">{t('share.processingShare')}</p>
         </div>
       </div>
     );
@@ -119,13 +122,13 @@ export function ShareTargetPage({ onBack, onComplete }: ShareTargetPageProps) {
     return (
       <div className="min-h-[100dvh] bg-surface-primary flex items-center justify-center p-4 safe-area-top">
         <div className="bg-surface-secondary rounded-2xl p-6 max-w-sm w-full text-center">
-          <h2 className="text-white text-xl font-semibold mb-2">無法處理分享</h2>
-          <p className="text-on-surface-secondary mb-6">{error || '未知錯誤'}</p>
+          <h2 className="text-white text-xl font-semibold mb-2">{t('share.cannotProcessShare')}</h2>
+          <p className="text-on-surface-secondary mb-6">{t(error || 'common.unknownError')}</p>
           <button
             onClick={handleCancel}
             className="w-full py-3 bg-mist-500 hover:bg-mist-600 text-white rounded-xl transition-colors"
           >
-            返回
+            {t('common.back')}
           </button>
         </div>
       </div>

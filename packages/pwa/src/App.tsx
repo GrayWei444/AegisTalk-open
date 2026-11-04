@@ -18,6 +18,7 @@ import { Capacitor } from '@capacitor/core';
 import type { TransferData } from './services/deviceTransfer';
 import { restoreGroupsFromBackup } from './services/groupRestore';
 import { ext } from '@ext';
+import { tr } from './i18n/tr';
 import type { TrustLevel } from './types';
 
 /**
@@ -382,7 +383,7 @@ function App() {
           const trustLevel: TrustLevel = friend.verified ? 'verified' : 'unverified';
           addFriend(
             friend.publicKey,
-            friend.nickname || `好友 ${friend.publicKey.slice(0, 8)}`,
+            friend.nickname || tr('friendList.defaultFriendPrefix', { key: friend.publicKey.slice(0, 8) }),
             trustLevel
           );
         }

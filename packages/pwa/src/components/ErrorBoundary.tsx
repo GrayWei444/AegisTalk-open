@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { getServiceTranslation } from '../i18n/serviceHelper';
 
 interface Props {
   children: ReactNode;
@@ -36,6 +37,8 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       const { error } = this.state;
+      // 在 LanguageProvider 外面（main.tsx）：直接讀語言設定
+      const t = getServiceTranslation();
       return (
         <div style={{
           minHeight: '100dvh',
@@ -47,10 +50,10 @@ export class ErrorBoundary extends Component<Props, State> {
           overflow: 'auto',
         }}>
           <h1 style={{ color: '#ff6b6b', fontSize: '1.25rem', marginBottom: '16px' }}>
-            AegisTalk Crash
+            {t('chatApp.crashTitle')}
           </h1>
           <p style={{ color: '#ffa502', marginBottom: '12px' }}>
-            {error?.message || 'Unknown error'}
+            {error?.message || t('common.unknownError')}
           </p>
           <pre style={{
             backgroundColor: '#16213e',
@@ -62,7 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
             maxHeight: '60vh',
             overflow: 'auto',
           }}>
-            {error?.stack || 'No stack trace'}
+            {error?.stack || t('chatApp.noStackTrace')}
           </pre>
           <button
             onClick={() => window.location.reload()}
@@ -78,7 +81,7 @@ export class ErrorBoundary extends Component<Props, State> {
               cursor: 'pointer',
             }}
           >
-            Reload App
+            {t('chatApp.reload')}
           </button>
         </div>
       );

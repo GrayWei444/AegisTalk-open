@@ -167,7 +167,7 @@ class User {
     await this.page.locator('button[title="' + t('friendList.addFriend') + '"]').first().click();
     await this.btn(t('friendCode.friendCodeTab')).click();
     await this.page.getByPlaceholder('ATK-XXXXXX').fill(code);
-    await this.page.locator('.fixed.inset-0.z-50').getByRole('button', { name: '加入好友', exact: true }).click();
+    await this.page.locator('.fixed.inset-0.z-50').getByRole('button', { name: t('friendList.addFriend'), exact: true }).click();
     await sleep(3000);
     await this.page.locator('.fixed.inset-0 button:has(path[d="M6 18L18 6M6 6l12 12"])').first().click().catch(() => {});
   }
