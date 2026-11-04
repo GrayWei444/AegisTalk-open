@@ -104,6 +104,7 @@ const ja: TranslationKeys = {
     blacklistDescription: 'ブロックしたユーザーを管理',
     notificationPermission: '通知権限',
     notificationPermissionDescription: 'ガーディアン警告とチェックインリマインダーを受信',
+    notificationPermissionDescriptionChat: '新着メッセージと着信の通知を受け取る',
     notificationGranted: '許可済み',
     notificationNotGranted: '未許可',
     grantPermission: '許可する',

@@ -118,6 +118,7 @@ export interface TranslationKeys {
     blacklistDescription: string;
     notificationPermission: string;
     notificationPermissionDescription: string;
+    notificationPermissionDescriptionChat: string;
     notificationGranted: string;
     notificationNotGranted: string;
     grantPermission: string;

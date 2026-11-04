@@ -16,6 +16,12 @@ const EDITION: 'chat' | 'official' = EDITION_ENV;
 const EXT_DIR = EDITION === 'chat' ? './src/ext/chat' : './src/ext-official';
 const EXT_ENTRY = EDITION === 'chat' ? './src/ext/chat/index.tsx' : './src/ext-official/index.ts';
 
+// 設定頁顯示的版本號（社群版 1.0.2）：這個版本的 package.json 的 version。社群版在這個 repo 是 editions/chat/package.json，
+//   匯出的開源版裡它就是 packages/pwa/package.json（scripts/oss/transform.py chat-manifest）→ 沒有 editions/chat 就讀 package.json
+const CHAT_MANIFEST = path.resolve(__dirname, 'editions/chat/package.json');
+const APP_VERSION: string = JSON.parse(fs.readFileSync(
+  EDITION === 'chat' && fs.existsSync(CHAT_MANIFEST) ? CHAT_MANIFEST : path.resolve(__dirname, 'package.json'), 'utf8')).version;
+
 // 推播型別的版本（開源第 4 步：services/pushRequest.appEdition 只看 VITE_AEGIS_EDITION）：社群版不可以宣稱是官方版。
 //   .env 檔裡的 VITE_* 要等 mode 確定才讀得到 → 用 config hook 跟 loadEnv 一起看
 const editionGuard = {
@@ -95,6 +101,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     __BUILD_HASH__: JSON.stringify((process.env.BUILD_HASH || 'dev') + '/' + mode + (EDITION === 'chat' ? '/chat' : '')),
     __AEGIS_EDITION__: JSON.stringify(EDITION),
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
   },
   resolve: {
     alias: {

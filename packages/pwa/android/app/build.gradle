@@ -66,8 +66,8 @@ android {
             dimension 'edition'
             applicationId chatAppId
             // AegisTalk Chat's own release numbers (1.0.0 was defaultConfig's 1 / "1.0.0"); the official app keeps defaultConfig's
-            versionCode 2
-            versionName "1.0.1"
+            versionCode 3
+            versionName "1.0.2"
             resValue 'string', 'app_name', chatAppName
             resValue 'string', 'title_activity_main', chatLauncherLabel
         }

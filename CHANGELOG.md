@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.2 — 2026-11-04
+
+- **Settings → version:** shows "AegisTalk Chat v1.0.2", read from the package version at build time; it said
+  "AegisTalk v0.1.0 / Build 2026-01-18" in every release.
+- **Settings → notification permission:** the description is now "Get notified of new messages and calls"; it named
+  guardian alerts and check-in reminders, which only the official app has.
+- **Android notification categories** (system settings → apps → AegisTalk Chat → notifications): the incoming-call
+  category's name and description follow the app's language and change with it (they were always Chinese, "來電通知").
+  Apps built with your own Firebase project (FCM) no longer create a "Guardian Alerts" category; one created by 1.0.0 /
+  1.0.1 at the first push is removed when the app starts. The GitHub APK has no FCM and never had it.
+- Android: `versionName` 1.0.2, `versionCode` 3. Signed with the same key as 1.0.0, so it installs over it.
+
 ## 1.0.1 — 2026-11-04
 
 - **Friend list:** the time of the last message ("just now", "5 min ago", "3 hr ago", "2 d ago") is shown in the app's

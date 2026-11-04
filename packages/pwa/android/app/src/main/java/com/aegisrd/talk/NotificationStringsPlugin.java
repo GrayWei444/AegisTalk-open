@@ -24,6 +24,8 @@ public class NotificationStringsPlugin extends Plugin {
         }
 
         NotificationStrings.INSTANCE.save(getContext(), stringsJson);
+        // 通知分類（系統設定裡的來電分類）的名稱跟著 App 的語言：存好新文字就重建，不必等下次開啟
+        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).createNotificationChannels();
 
         JSObject ret = new JSObject();
         ret.put("synced", true);

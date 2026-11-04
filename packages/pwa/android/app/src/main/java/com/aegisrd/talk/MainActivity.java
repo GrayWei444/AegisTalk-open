@@ -66,20 +66,22 @@ public class MainActivity extends BridgeActivity {
     }
 
     /**
-     * 建立所有通知頻道
+     * 建立所有通知頻道（開啟時；NotificationStringsPlugin 收到 App 的新文字後也再叫一次，分類名稱跟著換語言）
      */
-    private void createNotificationChannels() {
+    void createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             if (notificationManager == null) return;
 
             // 1. 來電通知頻道（高優先級，支援 Heads-up）
+            //    名稱跟著 App 的語言（社群版 1.0.2）：JS 同步到 NotificationStrings 的文字；每次開啟都重建，語言換了下次就更新
+            NotificationStrings.Strings strings = NotificationStrings.INSTANCE.load(this);
             NotificationChannel callChannel = new NotificationChannel(
                 "incoming_call_channel",
-                "來電通知",
+                strings.getChannelCalls(),
                 NotificationManager.IMPORTANCE_HIGH
             );
-            callChannel.setDescription("顯示來電通知，包含接聽和拒接按鈕");
+            callChannel.setDescription(strings.getChannelCallsDesc());
             callChannel.enableVibration(true);
             callChannel.setVibrationPattern(new long[]{0, 500, 200, 200, 200, 500, 2000});
             callChannel.setBypassDnd(true);
@@ -92,8 +94,12 @@ public class MainActivity extends BridgeActivity {
             callChannel.setSound(ringtoneUri, ringtoneAttr);
             notificationManager.createNotificationChannel(callChannel);
 
-            // 2. 守護警報頻道（高優先級，報平安提醒 + 期限檢查）：守護功能只在官方版（開源第 5d 步）
-            if (!EditionPlugins.OFFICIAL) return;
+            // 2. 守護警報頻道（高優先級，報平安提醒 + 期限檢查）：守護功能只在官方版（開源第 5d 步）。
+            //    社群版自己用 Firebase 建置的 App 在 1.0.0／1.0.1 收到第一則推播時由 AegisFCMService 建過 aegistalk_guardian：開啟就刪掉
+            if (!EditionPlugins.OFFICIAL) {
+                notificationManager.deleteNotificationChannel("aegistalk_guardian");
+                return;
+            }
             NotificationChannel guardianChannel = new NotificationChannel(
                 "guardian_alert_channel",
                 "守護通知",

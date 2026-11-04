@@ -104,6 +104,7 @@ const zhCN: TranslationKeys = {
     blacklistDescription: '管理您屏蔽的用户',
     notificationPermission: '通知权限',
     notificationPermissionDescription: '接收守护警告与报平安提醒',
+    notificationPermissionDescriptionChat: '接收新消息与来电通知',
     notificationGranted: '已授权',
     notificationNotGranted: '未授权',
     grantPermission: '授权',

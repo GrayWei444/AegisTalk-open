@@ -22,6 +22,9 @@ import { ChangePinModal } from '../components/Settings/ChangePinModal';
 import { ServerSettings } from '../components/Settings/ServerSettings';
 import { ext } from '@ext';
 
+// 社群版：版本資訊的名稱是 AegisTalk Chat；通知說明不提守護／報平安（只有官方版有）
+const CHAT_EDITION = __AEGIS_EDITION__ === 'chat';
+
 // 最大圖片尺寸（壓縮後）
 const MAX_IMAGE_SIZE = 200;
 const IMAGE_QUALITY = 0.8;
@@ -110,7 +113,9 @@ function NotificationPermissionRow() {
         </div>
         <div className="text-left">
           <p className="text-on-surface-primary text-sm font-medium">{t('settings.notificationPermission')}</p>
-          <p className="text-on-surface-secondary text-xs">{t('settings.notificationPermissionDescription')}</p>
+          <p className="text-on-surface-secondary text-xs">
+            {t(CHAT_EDITION ? 'settings.notificationPermissionDescriptionChat' : 'settings.notificationPermissionDescription')}
+          </p>
         </div>
       </div>
       {granted ? (
@@ -530,10 +535,9 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
           </div>
         </div>
 
-        {/* 版本資訊 */}
+        {/* 版本資訊（版本號由 vite.config.ts 從 package.json 注入） */}
         <div className="p-4 text-center text-on-surface-tertiary text-xs">
-          <p>AegisTalk v0.1.0</p>
-          <p className="mt-1 text-on-surface-tertiary">Build 2026-01-18</p>
+          <p>{CHAT_EDITION ? 'AegisTalk Chat' : 'AegisTalk'} v{__APP_VERSION__}</p>
         </div>
       </div>
 

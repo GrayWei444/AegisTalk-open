@@ -104,6 +104,7 @@ const zhTW: TranslationKeys = {
     blacklistDescription: '管理您封鎖的用戶',
     notificationPermission: '通知權限',
     notificationPermissionDescription: '接收守護警告與報平安提醒',
+    notificationPermissionDescriptionChat: '接收新訊息與來電通知',
     notificationGranted: '已授權',
     notificationNotGranted: '未授權',
     grantPermission: '授權',

@@ -334,7 +334,15 @@ class AegisFCMService : FirebaseMessagingService() {
             setBypassDnd(true)
         }
 
-        // Guardian channel
+        manager.createNotificationChannel(msgChannel)
+        manager.createNotificationChannel(callChannel)
+
+        // Guardian channel: official app only (the community app has no guardian). Community 1.0.0 / 1.0.1 created it,
+        // so it is removed there.
+        if (!EditionPlugins.OFFICIAL) {
+            manager.deleteNotificationChannel(GUARDIAN_CHANNEL_ID)
+            return
+        }
         val guardianChannel = NotificationChannel(
             GUARDIAN_CHANNEL_ID,
             s.channelGuardian,
@@ -345,9 +353,6 @@ class AegisFCMService : FirebaseMessagingService() {
             lockscreenVisibility = Notification.VISIBILITY_PRIVATE
             setBypassDnd(true)
         }
-
-        manager.createNotificationChannel(msgChannel)
-        manager.createNotificationChannel(callChannel)
         manager.createNotificationChannel(guardianChannel)
     }
 }

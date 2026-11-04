@@ -104,6 +104,7 @@ const ko: TranslationKeys = {
     blacklistDescription: '차단한 사용자를 관리합니다',
     notificationPermission: '알림 권한',
     notificationPermissionDescription: '보호자 알림 및 체크인 알림 수신',
+    notificationPermissionDescriptionChat: '새 메시지 및 수신 전화 알림 받기',
     notificationGranted: '허용됨',
     notificationNotGranted: '허용 안 됨',
     grantPermission: '허용',

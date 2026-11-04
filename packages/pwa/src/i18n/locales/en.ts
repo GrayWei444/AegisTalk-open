@@ -104,6 +104,7 @@ const en: TranslationKeys = {
     blacklistDescription: 'Manage your blocked users',
     notificationPermission: 'Notification Permission',
     notificationPermissionDescription: 'Receive guardian alerts and check-in reminders',
+    notificationPermissionDescriptionChat: 'Get notified of new messages and calls',
     notificationGranted: 'Granted',
     notificationNotGranted: 'Not Granted',
     grantPermission: 'Grant',
